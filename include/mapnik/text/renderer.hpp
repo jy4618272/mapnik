@@ -70,7 +70,7 @@ public:
 private:
     pixmap_type & pixmap_;
     void render_halo(FT_Bitmap_ *bitmap, unsigned rgba, int x, int y,
-                     int halo_radius, double opacity,
+                     double halo_radius, double opacity,
                      composite_mode_e comp_op);
 };
 

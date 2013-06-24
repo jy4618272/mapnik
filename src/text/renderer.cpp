@@ -269,23 +269,48 @@ void agg_text_renderer<T>::render_halo(FT_Bitmap *bitmap,
                  unsigned rgba,
                  int x1,
                  int y1,
-                 int halo_radius,
+                 double halo_radius,
                  double opacity,
                  composite_mode_e comp_op)
 {
     int width = bitmap->width;
     int height = bitmap->rows;
     int x, y;
-    for (x=0; x < width; x++)
+    if (halo_radius < 1.0)
     {
-        for (y=0; y < height; y++)
+        for (x=0; x < width; x++)
         {
-            int gray = bitmap->buffer[y*bitmap->width+x];
-            if (gray)
+            for (y=0; y < height; y++)
             {
-                for (int n=-halo_radius; n <=halo_radius; ++n)
-                    for (int m=-halo_radius; m <= halo_radius; ++m)
-                        pixmap_.composite_pixel(comp_op, x+x1+m, y+y1+n, rgba, gray, opacity);
+                int gray = bitmap->buffer[y*bitmap->width+x];
+                if (gray)
+                {
+                    pixmap_.composite_pixel(comp_op, x+x1-1, y+y1-1, rgba, gray*halo_radius*halo_radius, opacity);
+                    pixmap_.composite_pixel(comp_op, x+x1,   y+y1-1, rgba, gray*halo_radius, opacity);
+                    pixmap_.composite_pixel(comp_op, x+x1+1, y+y1-1, rgba, gray*halo_radius*halo_radius, opacity);
+
+                    pixmap_.composite_pixel(comp_op, x+x1-1, y+y1,   rgba, gray*halo_radius, opacity);
+                    pixmap_.composite_pixel(comp_op, x+x1,   y+y1,   rgba, gray, opacity);
+                    pixmap_.composite_pixel(comp_op, x+x1+1, y+y1,   rgba, gray*halo_radius, opacity);
+
+                    pixmap_.composite_pixel(comp_op, x+x1-1, y+y1+1, rgba, gray*halo_radius*halo_radius, opacity);
+                    pixmap_.composite_pixel(comp_op, x+x1,   y+y1+1, rgba, gray*halo_radius, opacity);
+                    pixmap_.composite_pixel(comp_op, x+x1+1, y+y1+1, rgba, gray*halo_radius*halo_radius, opacity);
+                }
+            }
+        }
+    } else {
+        for (x=0; x < width; x++)
+        {
+            for (y=0; y < height; y++)
+            {
+                int gray = bitmap->buffer[y*bitmap->width+x];
+                if (gray)
+                {
+                    for (int n=-halo_radius; n <=halo_radius; ++n)
+                        for (int m=-halo_radius; m <= halo_radius; ++m)
+                            pixmap_.composite_pixel(comp_op, x+x1+m, y+y1+n, rgba, gray, opacity);
+                }
             }
         }
     }
