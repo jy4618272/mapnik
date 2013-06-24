@@ -35,6 +35,12 @@ except:
 LIBDIR_SCHEMA_DEFAULT='lib'
 severities = ['debug', 'warn', 'error', 'none']
 
+DEFAULT_CC = "gcc"
+DEFAULT_CXX = "g++"
+if sys.platform == 'darwin':
+    DEFAULT_CC = "clang"
+    DEFAULT_CXX = "clang++"
+
 py3 = None
 
 # local file to hold custom user configuration variables
@@ -58,7 +64,6 @@ pretty_dep_names = {
     'ociei':'Oracle database library | configure with OCCI_LIBS & OCCI_INCLUDES | more info: https://github.com/mapnik/mapnik/wiki//OCCI',
     'gdal':'GDAL C++ library | configured using gdal-config program | try setting GDAL_CONFIG SCons option | more info: https://github.com/mapnik/mapnik/wiki/GDAL',
     'ogr':'OGR-enabled GDAL C++ Library | configured using gdal-config program | try setting GDAL_CONFIG SCons option | more info: https://github.com/mapnik/mapnik/wiki//OGR',
-    'geos_c':'GEOS Simple Geometry Specification C Library | configured with GEOS_LIB & GEOS_INCLUDE | more info: https://github.com/mapnik/mapnik/wiki//GEOS',
     'cairo':'Cairo C library | configured using pkg-config | try setting PKG_CONFIG_PATH SCons option',
     'pycairo':'Python bindings to Cairo library | configured using pkg-config | try setting PKG_CONFIG_PATH SCons option',
     'proj':'Proj.4 C Projections library | configure with PROJ_LIBS & PROJ_INCLUDES | more info: http://trac.osgeo.org/proj/',
@@ -75,7 +80,6 @@ pretty_dep_names = {
     'pg_config':'pg_config program | try setting PG_CONFIG SCons option',
     'xml2-config':'xml2-config program | try setting XML2_CONFIG SCons option',
     'gdal-config':'gdal-config program | try setting GDAL_CONFIG SCons option',
-    'geos-config':'geos-config program | try setting GEOS_CONFIG SCons option',
     'freetype-config':'freetype-config program | try setting FREETYPE_CONFIG SCons option',
     'osm':'more info: https://github.com/mapnik/mapnik/wiki//OsmPlugin',
     'curl':'libcurl is required for the "osm" plugin - more info: https://github.com/mapnik/mapnik/wiki//OsmPlugin',
@@ -91,7 +95,6 @@ PLUGINS = { # plugins with external dependencies
             'postgis': {'default':True,'path':None,'inc':'libpq-fe.h','lib':'pq','lang':'C'},
             'gdal':    {'default':True,'path':None,'inc':'gdal_priv.h','lib':'gdal','lang':'C++'},
             'ogr':     {'default':True,'path':None,'inc':'ogrsf_frmts.h','lib':'gdal','lang':'C++'},
-            'geos':    {'default':False,'path':None,'inc':'geos_c.h','lib':'geos_c','lang':'C'},
             # configured with custom paths, hence 'path': PREFIX/INCLUDES/LIBS
             'occi':    {'default':False,'path':'OCCI','inc':'occi.h','lib':'ociei','lang':'C++'},
             'sqlite':  {'default':True,'path':'SQLITE','inc':'sqlite3.h','lib':'sqlite3','lang':'C'},
@@ -105,7 +108,6 @@ PLUGINS = { # plugins with external dependencies
             'csv':     {'default':True,'path':None,'inc':None,'lib':None,'lang':'C++'},
             'raster':  {'default':True,'path':None,'inc':None,'lib':None,'lang':'C++'},
             'geojson': {'default':True,'path':None,'inc':None,'lib':None,'lang':'C++'},
-            'kismet':  {'default':False,'path':None,'inc':None,'lib':None,'lang':'C++'},
             'python':  {'default':True,'path':None,'inc':None,'lib':None,'lang':'C++'},
             }
 
@@ -173,7 +175,7 @@ def shortest_name(libs):
 
 def sort_paths(items,priority):
     """Sort paths such that compiling and linking will globally prefer custom or local libs
-    over system libraries by fixing up the order libs are passed to gcc and the linker.
+    over system libraries by fixing up the order libs are passed to the compiler and the linker.
 
     Ideally preference could be by-target instead of global, but our SCons implementation
     is not currently utilizing different SCons build env()'s as we should.
@@ -258,15 +260,15 @@ opts = Variables()
 
 opts.AddVariables(
     # Compiler options
-    ('CXX', 'The C++ compiler to use to compile mapnik (defaults to g++).', 'g++'),
-    ('CC', 'The C compiler used for configure checks of C libs (defaults to gcc).', 'gcc'),
+    ('CXX', 'The C++ compiler to use to compile mapnik', DEFAULT_CXX),
+    ('CC', 'The C compiler used for configure checks of C libs.', DEFAULT_CC),
     ('CUSTOM_CXXFLAGS', 'Custom C++ flags, e.g. -I<include dir> if you have headers in a nonstandard directory <include dir>', ''),
     ('CUSTOM_DEFINES', 'Custom Compiler DEFINES, e.g. -DENABLE_THIS', ''),
     ('CUSTOM_CFLAGS', 'Custom C flags, e.g. -I<include dir> if you have headers in a nonstandard directory <include dir> (only used for configure checks)', ''),
     ('CUSTOM_LDFLAGS', 'Custom linker flags, e.g. -L<lib dir> if you have libraries in a nonstandard directory <lib dir>', ''),
     EnumVariable('LINKING', "Set library format for libmapnik",'shared', ['shared','static']),
     EnumVariable('RUNTIME_LINK', "Set preference for linking dependencies",'shared', ['shared','static']),
-    EnumVariable('OPTIMIZATION','Set g++ optimization level','3', ['0','1','2','3','4','s']),
+    EnumVariable('OPTIMIZATION','Set compiler optimization level','3', ['0','1','2','3','4','s']),
     # Note: setting DEBUG=True will override any custom OPTIMIZATION level
     BoolVariable('DEBUG', 'Compile a debug version of Mapnik', 'False'),
     BoolVariable('DEBUG_UNDEFINED', 'Compile a version of Mapnik using clang/llvm undefined behavior asserts', 'False'),
@@ -334,7 +336,6 @@ PathVariable.PathAccept),
     BoolVariable('CPP_TESTS', 'Compile the C++ tests', 'True'),
 
     # Variables for optional dependencies
-    ('GEOS_CONFIG', 'The path to the geos-config executable.', 'geos-config'),
     # Note: cairo and and pycairo are optional but configured automatically through pkg-config
     # Therefore, we use a single boolean for whether to attempt to build cairo support.
     BoolVariable('CAIRO', 'Attempt to build with Cairo rendering support', 'True'),
@@ -553,7 +554,7 @@ def parse_config(context, config, checks='--libs --cflags'):
     env = context.env
     tool = config.lower().replace('_','-')
     toolname = tool
-    if config in ('GDAL_CONFIG','GEOS_CONFIG'):
+    if config in ('GDAL_CONFIG'):
         toolname += ' %s' % checks
     context.Message( 'Checking for %s... ' % toolname)
     cmd = '%s %s' % (env[config],checks)
@@ -582,7 +583,7 @@ def parse_config(context, config, checks='--libs --cflags'):
             ret = False
             print ' (xml2-config not found!)'
     if not parsed:
-        if config in ('GDAL_CONFIG','GEOS_CONFIG'):
+        if config in ('GDAL_CONFIG'):
             # optional deps...
             env['SKIPPED_DEPS'].append(tool)
             conf.rollback_option(config)
@@ -1289,11 +1290,6 @@ if not preconfigured:
                     libname = conf.get_pkg_lib('GDAL_CONFIG','ogr')
                     if libname:
                         details['lib'] = libname
-            elif plugin == 'geos':
-                if conf.parse_config('GEOS_CONFIG',checks='--ldflags --cflags'):
-                    lgeos_c = env['PLUGINS']['geos']['lib']
-                    env.Append(LIBS = lgeos_c)
-
             elif details['path'] and details['lib'] and details['inc']:
                 backup = env.Clone().Dictionary()
                 # Note, the 'delete_existing' keyword makes sure that these paths are prepended
@@ -1603,11 +1599,11 @@ if not preconfigured:
 
         if not env['SUNCC']:
             # Common flags for GCC.
-            gcc_cxx_flags = '-ansi -Wall %s %s -ftemplate-depth-300 ' % (env['WARNING_CXXFLAGS'], pthread)
+            common_cxx_flags = '-ansi -Wall %s %s -ftemplate-depth-300 ' % (env['WARNING_CXXFLAGS'], pthread)
             if env['DEBUG']:
-                env.Append(CXXFLAGS = gcc_cxx_flags + '-O0 -fno-inline')
+                env.Append(CXXFLAGS = common_cxx_flags + '-O0 -fno-inline')
             else:
-                env.Append(CXXFLAGS = gcc_cxx_flags + '-O%s -fno-strict-aliasing -finline-functions -Wno-inline -Wno-parentheses -Wno-char-subscripts' % (env['OPTIMIZATION']))
+                env.Append(CXXFLAGS = common_cxx_flags + '-O%s -fvisibility-inlines-hidden -fno-strict-aliasing -finline-functions -Wno-inline -Wno-parentheses -Wno-char-subscripts' % (env['OPTIMIZATION']))
 
             if env['DEBUG_UNDEFINED']:
                 env.Append(CXXFLAGS = '-fsanitize=undefined-trap -fsanitize-undefined-trap-on-error -ftrapv -fwrapv')
@@ -1726,11 +1722,8 @@ if not HELP_REQUESTED:
     Export('env')
 
     plugin_base = env.Clone()
-    # for this to work you need:
-    # if __GNUC__ >= 4
-    # define MAPNIK_EXP __attribute__ ((visibility ("default")))
-    #plugin_base.Append(CXXFLAGS='-fvisibility=hidden')
-    #plugin_base.Append(CXXFLAGS='-fvisibility-inlines-hidden')
+    if not env['DEBUG']:
+        plugin_base.Append(CXXFLAGS='-fvisibility=hidden')
 
     Export('plugin_base')
 
