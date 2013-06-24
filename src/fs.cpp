@@ -23,10 +23,14 @@
 //#define BOOST_FILESYSTEM_VERSION 2
 
 // mapnik
+#include <mapnik/utils.hpp>
 #include <mapnik/util/fs.hpp>
 
 // boost
 #include <boost/filesystem/convenience.hpp>
+
+// stl
+#include <stdexcept>
 
 #if (BOOST_FILESYSTEM_VERSION <= 2)
 #include <boost/scoped_array.hpp>

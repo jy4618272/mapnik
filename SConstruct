@@ -1257,12 +1257,11 @@ if not preconfigured:
 
     conf.FindBoost(BOOST_SEARCH_PREFIXES,thread_flag)
 
-    has_boost_devel = False
+    has_boost_devel = True
     if not env['HOST']:
         if not conf.CheckHeader(header='boost/version.hpp',language='C++'):
             env['MISSING_DEPS'].append('boost development headers')
-        else:
-            has_boost_devel = True
+            has_boost_devel = False
 
     if has_boost_devel:
         env['BOOST_LIB_VERSION_FROM_HEADER'] = conf.GetBoostLibVersion()
@@ -1598,7 +1597,7 @@ if not preconfigured:
         # fetch the mapnik version header in order to set the
         # ABI version used to build libmapnik.so on linux in src/build.py
         abi = conf.GetMapnikLibVersion()
-        abi_fallback = "2.2.0-pre"
+        abi_fallback = "3.0.0-pre"
         if not abi:
             color_print(1,'Problem encountered parsing mapnik version, falling back to %s' % abi_fallback)
             abi = abi_fallback
