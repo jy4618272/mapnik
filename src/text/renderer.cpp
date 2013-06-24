@@ -267,26 +267,25 @@ void grid_text_renderer<T>::render(glyph_positions_ptr pos, value_integer featur
 template <typename T>
 void agg_text_renderer<T>::render_halo(FT_Bitmap *bitmap,
                  unsigned rgba,
-                 int x,
-                 int y,
+                 int x1,
+                 int y1,
                  int halo_radius,
                  double opacity,
                  composite_mode_e comp_op)
 {
-    int x_max=x+bitmap->width;
-    int y_max=y+bitmap->rows;
-    int i,p,j,q;
-
-    for (i=x,p=0;i<x_max;++i,++p)
+    int width = bitmap->width;
+    int height = bitmap->rows;
+    int x, y;
+    for (x=0; x < width; x++)
     {
-        for (j=y,q=0;j<y_max;++j,++q)
+        for (y=0; y < height; y++)
         {
-            int gray = bitmap->buffer[q*bitmap->width+p];
+            int gray = bitmap->buffer[y*bitmap->width+x];
             if (gray)
             {
                 for (int n=-halo_radius; n <=halo_radius; ++n)
-                    for (int m=-halo_radius;m <= halo_radius; ++m)
-                        pixmap_.composite_pixel(comp_op, i+m, j+n, rgba, gray, opacity);
+                    for (int m=-halo_radius; m <= halo_radius; ++m)
+                        pixmap_.composite_pixel(comp_op, x+x1+m, y+y1+n, rgba, gray, opacity);
             }
         }
     }
@@ -296,24 +295,23 @@ template <typename T>
 void grid_text_renderer<T>::render_halo_id(
                     FT_Bitmap *bitmap,
                     mapnik::value_integer feature_id,
-                    int x,
-                    int y,
+                    int x1,
+                    int y1,
                     int halo_radius)
 {
-    int x_max=x+bitmap->width;
-    int y_max=y+bitmap->rows;
-    int i,p,j,q;
-
-    for (i=x,p=0;i<x_max;++i,++p)
+    int width = bitmap->width;
+    int height = bitmap->rows;
+    int x, y;
+    for (x=0; x < width; x++)
     {
-        for (j=y,q=0;j<y_max;++j,++q)
+        for (y=0; y < height; y++)
         {
-            int gray = bitmap->buffer[q*bitmap->width+p];
+            int gray = bitmap->buffer[y*bitmap->width+x];
             if (gray)
             {
                 for (int n=-halo_radius; n <=halo_radius; ++n)
-                    for (int m=-halo_radius;m <= halo_radius; ++m)
-                        pixmap_.setPixel(i+m,j+n,feature_id);
+                    for (int m=-halo_radius; m <= halo_radius; ++m)
+                        pixmap_.setPixel(x+x1+m,y+y1+n,feature_id);
             }
         }
     }
