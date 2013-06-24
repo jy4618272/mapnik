@@ -1655,7 +1655,9 @@ if not preconfigured:
             if env['DEBUG']:
                 env.Append(CXXFLAGS = common_cxx_flags + '-O0 -fno-inline')
             else:
-                env.Append(CXXFLAGS = common_cxx_flags + '-O%s -fvisibility-inlines-hidden -fno-strict-aliasing -finline-functions -Wno-inline -Wno-parentheses -Wno-char-subscripts' % (env['OPTIMIZATION']))
+                # TODO - add back -fvisibility-inlines-hidden
+                # https://github.com/mapnik/mapnik/issues/1863
+                env.Append(CXXFLAGS = common_cxx_flags + '-O%s -fno-strict-aliasing -finline-functions -Wno-inline -Wno-parentheses -Wno-char-subscripts' % (env['OPTIMIZATION']))
 
             if env['DEBUG_UNDEFINED']:
                 env.Append(CXXFLAGS = '-fsanitize=undefined-trap -fsanitize-undefined-trap-on-error -ftrapv -fwrapv')
@@ -1770,8 +1772,6 @@ if not HELP_REQUESTED:
     Export('env')
 
     plugin_base = env.Clone()
-    if not env['DEBUG']:
-        plugin_base.Append(CXXFLAGS='-fvisibility=hidden')
 
     Export('plugin_base')
 
@@ -1802,6 +1802,9 @@ if not HELP_REQUESTED:
     GDAL_BUILT = False
     OGR_BUILT = False
     for plugin in env['PLUGINS']:
+        if env['PLUGIN_LINKING'] == 'static' or plugin not in env['REQUESTED_PLUGINS']:
+            if os.path.exists('plugins/input/%s.input' % plugin):
+                os.unlink('plugins/input/%s.input' % plugin)
         if plugin in env['REQUESTED_PLUGINS']:
             details = env['PLUGINS'][plugin]
             if details['lib'] in env['LIBS']:
@@ -1822,15 +1825,18 @@ if not HELP_REQUESTED:
                 color_print(1,"Notice: dependencies not met for plugin '%s', not building..." % plugin)
                 if os.path.exists('plugins/input/%s.input' % plugin):
                     os.unlink('plugins/input/%s.input' % plugin)
-        elif os.path.exists('plugins/input/%s.input' % plugin):
-            os.unlink('plugins/input/%s.input' % plugin)
 
     create_uninstall_target(env, env['MAPNIK_LIB_DIR_DEST'], False)
     create_uninstall_target(env, env['MAPNIK_INPUT_PLUGINS_DEST'] , False)
 
-    # before installing plugins, wipe out any previously
-    # installed plugins that we are no longer building
     if 'install' in COMMAND_LINE_TARGETS:
+        # if statically linking plugins still make sure
+        # to create the dynamic plugins directory
+        if env['PLUGIN_LINKING'] == 'static':
+            if not os.path.exists(env['MAPNIK_INPUT_PLUGINS_DEST']):
+                os.makedirs(env['MAPNIK_INPUT_PLUGINS_DEST'])
+        # before installing plugins, wipe out any previously
+        # installed plugins that we are no longer building
         for plugin in PLUGINS.keys():
             plugin_path = os.path.join(env['MAPNIK_INPUT_PLUGINS_DEST'],'%s.input' % plugin)
             if os.path.exists(plugin_path):
@@ -1891,11 +1897,14 @@ if not HELP_REQUESTED:
     # if requested, build the sample input plugins
     if env['SAMPLE_INPUT_PLUGINS']:
         SConscript('plugins/input/templates/helloworld/build.py')
-    elif 'install' in COMMAND_LINE_TARGETS:
-        plugin_path = os.path.join(env['MAPNIK_INPUT_PLUGINS_DEST'],'hello.input')
-        if os.path.exists(plugin_path):
-            color_print(3,"Notice: removing out of date plugin: '%s'" % plugin_path)
-            os.unlink(plugin_path)
+    else:
+        if 'install' in COMMAND_LINE_TARGETS:
+            plugin_path = os.path.join(env['MAPNIK_INPUT_PLUGINS_DEST'],'hello.input')
+            if os.path.exists(plugin_path):
+                color_print(3,"Notice: removing out of date plugin: '%s'" % plugin_path)
+                os.unlink(plugin_path)
+        if os.path.exists('plugins/input/templates/hello.input'):
+            os.unlink('plugins/input/templates/hello.input')
 
     # update linux project files
     if env['PLATFORM'] == 'Linux':

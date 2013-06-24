@@ -7,11 +7,25 @@ namespace sys = boost::system;
 #include <boost/detail/lightweight_test.hpp>
 #include <iostream>
 #include <mapnik/font_engine_freetype.hpp>
+#include <vector>
+#include <algorithm>
 
-int main( int, char*[] )
+#include "utils.hpp"
+
+int main(int argc, char** argv)
 {
+    std::vector<std::string> args;
+    for (int i=1;i<argc;++i)
+    {
+        args.push_back(argv[i]);
+    }
+    bool quiet = std::find(args.begin(), args.end(), "-q")!=args.end();
+
     try
     {
+
+        BOOST_TEST(set_working_dir(args));
+
         std::string fontdir("fonts/");
 
         BOOST_TEST( fs::exists( fontdir ) );
@@ -80,7 +94,8 @@ int main( int, char*[] )
     }
 
     if (!::boost::detail::test_errors()) {
-        std::clog << "C++ fonts registration: \x1b[1;32m✓ \x1b[0m\n";
+        if (quiet) std::clog << "\x1b[1;32m.\x1b[0m";
+        else std::clog << "C++ fonts registration: \x1b[1;32m✓ \x1b[0m\n";
 #if BOOST_VERSION >= 104600
         ::boost::detail::report_errors_remind().called_report_errors_function = true;
 #endif
