@@ -103,7 +103,7 @@ PLUGINS = { # plugins with external dependencies
             'rasterlite':  {'default':False,'path':'RASTERLITE','inc':['sqlite3.h','rasterlite.h'],'lib':'rasterlite','lang':'C'},
 
             # todo: osm plugin does also depend on libxml2 (but there is a separate check for that)
-            'osm':     {'default':True,'path':None,'inc':'curl/curl.h','lib':'curl','lang':'C'},
+            'osm':     {'default':False,'path':None,'inc':'curl/curl.h','lib':'curl','lang':'C'},
 
             # plugins without external dependencies requiring CheckLibWithHeader...
             'shape':   {'default':True,'path':None,'inc':None,'lib':None,'lang':'C++'},
@@ -1801,27 +1801,29 @@ if not HELP_REQUESTED:
     # Build the requested and able-to-be-compiled input plug-ins
     GDAL_BUILT = False
     OGR_BUILT = False
-    for plugin in env['REQUESTED_PLUGINS']:
-        details = env['PLUGINS'][plugin]
-        if details['lib'] in env['LIBS']:
-            if env['PLUGIN_LINKING'] == 'shared':
-                SConscript('plugins/input/%s/build.py' % plugin)
-            if plugin == 'ogr': OGR_BUILT = True
-            if plugin == 'gdal': GDAL_BUILT = True
-            if plugin == 'ogr' or plugin == 'gdal':
-                if GDAL_BUILT and OGR_BUILT:
+    for plugin in env['PLUGINS']:
+        if plugin in env['REQUESTED_PLUGINS']:
+            details = env['PLUGINS'][plugin]
+            if details['lib'] in env['LIBS']:
+                if env['PLUGIN_LINKING'] == 'shared':
+                    SConscript('plugins/input/%s/build.py' % plugin)
+                if plugin == 'ogr': OGR_BUILT = True
+                if plugin == 'gdal': GDAL_BUILT = True
+                if plugin == 'ogr' or plugin == 'gdal':
+                    if GDAL_BUILT and OGR_BUILT:
+                        env['LIBS'].remove(details['lib'])
+                else:
                     env['LIBS'].remove(details['lib'])
+            elif not details['lib']:
+                if env['PLUGIN_LINKING'] == 'shared':
+                    # build internal datasource input plugins
+                    SConscript('plugins/input/%s/build.py' % plugin)
             else:
-                env['LIBS'].remove(details['lib'])
-        elif not details['lib']:
-            if env['PLUGIN_LINKING'] == 'shared':
-                # build internal datasource input plugins
-                SConscript('plugins/input/%s/build.py' % plugin)
-        else:
-            color_print(1,"Notice: dependencies not met for plugin '%s', not building..." % plugin)
-            # also clear out locally built target
-            if os.path.exists('plugins/input/%s.input' % plugin):
-                os.unlink('plugins/input/%s.input' % plugin)
+                color_print(1,"Notice: dependencies not met for plugin '%s', not building..." % plugin)
+                if os.path.exists('plugins/input/%s.input' % plugin):
+                    os.unlink('plugins/input/%s.input' % plugin)
+        elif os.path.exists('plugins/input/%s.input' % plugin):
+            os.unlink('plugins/input/%s.input' % plugin)
 
     create_uninstall_target(env, env['MAPNIK_LIB_DIR_DEST'], False)
     create_uninstall_target(env, env['MAPNIK_INPUT_PLUGINS_DEST'] , False)
@@ -1834,7 +1836,7 @@ if not HELP_REQUESTED:
             if os.path.exists(plugin_path):
                 if plugin not in env['REQUESTED_PLUGINS'] or env['PLUGIN_LINKING'] == 'static':
                     color_print(3,"Notice: removing out of date plugin: '%s'" % plugin_path)
-                os.unlink(plugin_path)
+                    os.unlink(plugin_path)
 
     # Build the c++ rundemo app if requested
     if env['DEMO']:
