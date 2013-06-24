@@ -22,6 +22,7 @@ import sys
 import re
 import platform
 from glob import glob
+from copy import copy
 from subprocess import Popen, PIPE
 from SCons.SConf import SetCacheMode
 import pickle
@@ -172,6 +173,10 @@ def shortest_name(libs):
             name = lib
     return name
 
+def rm_path(item,set,_env):
+    for i in _env[set]:
+        if item in i:
+            _env[set].remove(i)
 
 def sort_paths(items,priority):
     """Sort paths such that compiling and linking will globally prefer custom or local libs
@@ -803,6 +808,32 @@ int main()
     context.Result(ret)
     return ret
 
+def CheckCairoHasFreetype(context, silent=False):
+    if not silent:
+        context.Message('Checking for cairo freetype font support ... ')
+    context.env.AppendUnique(CPPPATH=copy(env['CAIRO_CPPPATHS']))
+
+    ret = context.TryRun("""
+
+#include <cairo-features.h>
+
+int main()
+{
+    #ifdef CAIRO_HAS_FT_FONT
+    return 0;
+    #else
+    return 1;
+    #endif
+}
+
+""", '.cpp')[0]
+    if silent:
+        context.did_show_result=1
+    context.Result(ret)
+    for item in env['CAIRO_CPPPATHS']:
+        rm_path(item,'CPPPATH',context.env)
+    return ret
+
 def GetBoostLibVersion(context):
     ret = context.TryRun("""
 
@@ -950,6 +981,7 @@ conf_tests = { 'prioritize_paths'      : prioritize_paths,
                'CheckPKGVersion'       : CheckPKGVersion,
                'FindBoost'             : FindBoost,
                'CheckBoost'            : CheckBoost,
+               'CheckCairoHasFreetype' : CheckCairoHasFreetype,
                'GetBoostLibVersion'    : GetBoostLibVersion,
                'GetMapnikLibVersion'   : GetMapnikLibVersion,
                'parse_config'          : parse_config,
@@ -1416,6 +1448,11 @@ if not preconfigured:
     else:
         color_print(4,'Not building with cairo support, pass CAIRO=True to enable')
 
+    if not env['HOST'] and env['HAS_CAIRO']:
+        if not conf.CheckCairoHasFreetype():
+            env['SKIPPED_DEPS'].append('cairo')
+            env['HAS_CAIRO'] = False
+
     if 'python' in env['BINDINGS'] or 'python' in env['REQUESTED_PLUGINS']:
         if not os.access(env['PYTHON'], os.X_OK):
             color_print(1,"Cannot run python interpreter at '%s', make sure that you have the permissions to execute it." % env['PYTHON'])
@@ -1701,15 +1738,11 @@ if not HELP_REQUESTED:
         p = env['PATH_REMOVE']
         if p in env['ENV']['PATH']:
             env['ENV']['PATH'].replace(p,'')
-        def rm_path(set):
-            for i in env[set]:
-                if p in i:
-                    env[set].remove(i)
-        rm_path('LIBPATH')
-        rm_path('CPPPATH')
-        rm_path('CXXFLAGS')
-        rm_path('CAIRO_LIBPATHS')
-        rm_path('CAIRO_CPPPATHS')
+        rm_path(p,'LIBPATH',env)
+        rm_path(p,'CPPPATH',env)
+        rm_path(p,'CXXFLAGS',env)
+        rm_path(p,'CAIRO_LIBPATHS',env)
+        rm_path(p,'CAIRO_CPPPATHS',env)
 
     if env['PATH_REPLACE']:
         searches,replace = env['PATH_REPLACE'].split(':')
