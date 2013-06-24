@@ -334,6 +334,7 @@ PathVariable.PathAccept),
 
     BoolVariable('SVG_RENDERER', 'build support for native svg renderer', 'False'),
     BoolVariable('CPP_TESTS', 'Compile the C++ tests', 'True'),
+    BoolVariable('BENCHMARK', 'Compile the C++ benchmark scripts', 'False'),
 
     # Variables for optional dependencies
     # Note: cairo and and pycairo are optional but configured automatically through pkg-config
@@ -402,6 +403,7 @@ pickle_store = [# Scons internal variables
         'PLUGINS',
         'ABI_VERSION',
         'MAPNIK_VERSION_STRING',
+        'MAPNIK_VERSION',
         'PLATFORM',
         'BOOST_ABI',
         'BOOST_APPEND',
@@ -1092,7 +1094,7 @@ if not preconfigured:
     SOLARIS = env['PLATFORM'] == 'SunOS'
     env['SUNCC'] = SOLARIS and env['CXX'].startswith('CC')
 
-    # If the Sun Studio C++ compiler (`CC`) is used instead of GCC.
+    # If the Sun Studio C++ compiler (`CC`) is used instead of gcc.
     if env['SUNCC']:
         env['CC'] = 'cc'
         # To be compatible w/Boost everything needs to be compiled
@@ -1540,8 +1542,10 @@ if not preconfigured:
             color_print(1,'Problem encountered parsing mapnik version, falling back to %s' % abi_fallback)
             abi = abi_fallback
 
-        env['ABI_VERSION'] = abi.replace('-pre','').split('.')
+        abi_no_pre = abi.replace('-pre','').split('.')
+        env['ABI_VERSION'] = abi_no_pre
         env['MAPNIK_VERSION_STRING'] = abi
+        env['MAPNIK_VERSION'] = str(int(abi_no_pre[0])*100000+int(abi_no_pre[1])*100+int(abi_no_pre[2]))
 
         # Common DEFINES.
         env.Append(CPPDEFINES = '-D%s' % env['PLATFORM'].upper())
@@ -1598,8 +1602,14 @@ if not preconfigured:
             env.Append(CPPDEFINES = ndebug_defines)
 
         if not env['SUNCC']:
-            # Common flags for GCC.
+
+            # Common flags for CXX compiler.
             common_cxx_flags = '-ansi -Wall %s %s -ftemplate-depth-300 ' % (env['WARNING_CXXFLAGS'], pthread)
+
+            # https://github.com/mapnik/mapnik/issues/1835
+            if sys.platform == 'darwin' and env['CXX'] == 'g++':
+                common_cxx_flags += '-fpermissive '
+
             if env['DEBUG']:
                 env.Append(CXXFLAGS = common_cxx_flags + '-O0 -fno-inline')
             else:
@@ -1828,7 +1838,8 @@ if not HELP_REQUESTED:
         if env['SVG_RENDERER']:
             SConscript('tests/cpp_tests/svg_renderer_tests/build.py')
 
-    SConscript('benchmark/build.py')
+    if env['BENCHMARK']:
+        SConscript('benchmark/build.py')
 
     # install pkg-config script and mapnik-config script
     SConscript('utils/mapnik-config/build.py')
