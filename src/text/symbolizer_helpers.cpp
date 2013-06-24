@@ -35,7 +35,7 @@
 namespace mapnik {
 
 template <typename FaceManagerT, typename DetectorT>
-text_symbolizer_helper::text_symbolizer_helper(const text_symbolizer &sym, const Feature &feature, const proj_transform &prj_trans, unsigned width, unsigned height, double scale_factor, const CoordTransform &t, FaceManagerT &font_manager, DetectorT &detector, const box2d<double> &query_extent)
+text_symbolizer_helper::text_symbolizer_helper(const text_symbolizer &sym, const feature_impl &feature, const proj_transform &prj_trans, unsigned width, unsigned height, double scale_factor, const CoordTransform &t, FaceManagerT &font_manager, DetectorT &detector, const box2d<double> &query_extent)
     : sym_(sym),
       feature_(feature),
       prj_trans_(prj_trans),
@@ -238,7 +238,7 @@ void text_symbolizer_helper::initialize_points()
 
 template <typename FaceManagerT, typename DetectorT>
 text_symbolizer_helper::text_symbolizer_helper(
-        const shield_symbolizer &sym, const Feature &feature,
+        const shield_symbolizer &sym, const feature_impl &feature,
         const proj_transform &prj_trans,
         unsigned width, unsigned height, double scale_factor,
         const CoordTransform &t, FaceManagerT &font_manager,
@@ -295,13 +295,13 @@ void text_symbolizer_helper::init_marker()
     finder_.set_marker(boost::make_shared<marker_info>(m, trans), bbox, sym.get_unlock_image(), sym.get_shield_displacement());
 }
 
-template text_symbolizer_helper::text_symbolizer_helper(const text_symbolizer &sym, const Feature &feature,
+template text_symbolizer_helper::text_symbolizer_helper(const text_symbolizer &sym, const feature_impl &feature,
 const proj_transform &prj_trans,
 unsigned width, unsigned height, double scale_factor,
 const CoordTransform &t, face_manager<freetype_engine> &font_manager,
 label_collision_detector4 &detector, const box2d<double> &query_extent);
 
-template text_symbolizer_helper::text_symbolizer_helper(const shield_symbolizer &sym, const Feature &feature,
+template text_symbolizer_helper::text_symbolizer_helper(const shield_symbolizer &sym, const feature_impl &feature,
 const proj_transform &prj_trans,
 unsigned width, unsigned height, double scale_factor,
 const CoordTransform &t, face_manager<freetype_engine> &font_manager,

@@ -41,13 +41,12 @@ class label_collision_detector4;
 typedef label_collision_detector4 DetectorType;
 
 class feature_impl;
-typedef feature_impl Feature;
 class vertex_cache;
 
 class placement_finder : mapnik::noncopyable
 {
 public:
-    placement_finder(Feature const& feature,
+    placement_finder(feature_impl const& feature,
                         DetectorType & detector,
                         box2d<double> const& extent,
                         text_placement_info_ptr placement_info,
@@ -85,7 +84,7 @@ private:
         angle = angle of at start of line (to estimate best option for upright==auto) */
     text_upright_e simplify_upright(text_upright_e upright, double angle) const;
     box2d<double> get_bbox(glyph_info const& glyph, pixel_position const& pos, rotation const& rot);
-    Feature const& feature_;
+    feature_impl const& feature_;
     DetectorType &detector_;
     box2d<double> const& extent_;
     // Precalculated values for maximum performance

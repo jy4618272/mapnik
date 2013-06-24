@@ -117,7 +117,7 @@ pixel_position pixel_position::rotate(rotation const& rot) const
 
 
 
-placement_finder::placement_finder(Feature const& feature, DetectorType &detector, box2d<double> const& extent, text_placement_info_ptr placement_info, face_manager_freetype &font_manager, double scale_factor)
+placement_finder::placement_finder(feature_impl const& feature, DetectorType &detector, box2d<double> const& extent, text_placement_info_ptr placement_info, face_manager_freetype &font_manager, double scale_factor)
     : feature_(feature), detector_(detector), extent_(extent), layout_(font_manager, scale_factor), info_(placement_info), valid_(true), scale_factor_(scale_factor), placements_(), has_marker_(false), marker_(), marker_box_()
 {
 }
@@ -141,7 +141,7 @@ bool placement_finder::next_position()
     if (info_->properties.orientation)
     {
         // https://github.com/mapnik/mapnik/issues/1352
-        mapnik::evaluate<Feature, value_type> evaluator(feature_);
+        mapnik::evaluate<feature_impl, value_type> evaluator(feature_);
         orientation_.init(
             boost::apply_visitor(
             evaluator,
