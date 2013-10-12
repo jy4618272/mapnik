@@ -39,10 +39,13 @@
 namespace mapnik
 {
 
+
 struct text_item
 {
-    unsigned start; //First char
-    unsigned end; //First char after this item
+    /** First char (UTF16 offset) */
+    unsigned start;
+    /** Char _after_ the last char (UTF16 offset) */
+    unsigned end;
     UScriptCode script;
     char_properties_ptr format;
     UBiDiDirection rtl;
@@ -65,12 +68,12 @@ public:
     void add_text(mapnik::value_unicode_string str, char_properties_ptr format);
     std::list<text_item> const& itemize(unsigned start=0, unsigned end=0);
     void clear();
-    mapnik::value_unicode_string const& get_text() const { return text_; }
+    mapnik::value_unicode_string const& text() const { return text_; }
     /** Returns the start and end position of a certain line.
      *
      * Only forced line breaks with \n characters are handled here.
      */
-    std::pair<unsigned, unsigned> get_line(unsigned i) const;
+    std::pair<unsigned, unsigned> line(unsigned i) const;
     unsigned num_lines() const;
 private:
     template<typename T> struct run
