@@ -16,10 +16,6 @@ defaults = {
     'sizes': [(500, 100)],
     'scales':[1.0, 2.0],
     'agg': True,
-<<<<<<< HEAD
-=======
-    'cairo': True,
->>>>>>> 018bdc4f6dd3cd
     # disabled for 2.2.x since cairo tests are unstable (springmeyer)
     #'cairo': mapnik.has_cairo(),
     'cairo': False,
