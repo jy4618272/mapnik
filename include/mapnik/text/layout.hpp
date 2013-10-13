@@ -105,7 +105,7 @@ public:
     text_layout(face_manager_freetype & font_manager, double scale_factor);
 
     /** Adds a new text part. Call this function repeatedly to build the complete text. */
-    void add_text(mapnik:value_unicode_string const& str, char_properties_ptr format);
+    void add_text(mapnik::value_unicode_string const& str, char_properties_ptr format);
 
     /** Returns the complete text stored in this layout.*/
     UnicodeString const& text() const;
