@@ -118,7 +118,8 @@ tiff_tests = [
     #{'name': "tiff-nodata-edge-raster", 'sizes':[(600,400)]},
     #{'name': "tiff-opaque-edge-raster", 'sizes':[(256,256)]},
 ]
-    'line-pattern-symbolizer-opacity':{'sizes':[(512,512)]}
+    'line-pattern-symbolizer-opacity':{'sizes':[(512,512)]},
+    'dst-over-compositing':{'sizes':[(512,512)]},
 
 other_tests = [
     {'name': "marker-svg-opacity"},
