@@ -73,6 +73,7 @@ pretty_dep_names = {
     'jpeg':'JPEG C library | configure with JPEG_LIBS & JPEG_INCLUDES',
     'tiff':'TIFF C library | configure with TIFF_LIBS & TIFF_INCLUDES',
     'png':'PNG C library | configure with PNG_LIBS & PNG_INCLUDES',
+    'webp':'WEBP C library | configure with WEBP_LIBS & WEBP_INCLUDES',
     'icuuc':'ICU C++ library | configure with ICU_LIBS & ICU_INCLUDES or use ICU_LIB_NAME to specify custom lib name  | more info: http://site.icu-project.org/',
     'harfbuzz':'HarfBuzz text shaping library | configure with HB_LIBS & HB_INCLUDES',
     'z':'Z compression library | more info: http://www.zlib.net/',
@@ -329,14 +330,15 @@ opts.AddVariables(
     BoolVariable('TIFF', 'Build Mapnik with TIFF read and write support', 'True'),
     PathVariable('TIFF_INCLUDES', 'Search path for libtiff include files', '/usr/include', PathVariable.PathAccept),
     PathVariable('TIFF_LIBS', 'Search path for libtiff library files', '/usr/' + LIBDIR_SCHEMA_DEFAULT, PathVariable.PathAccept),
+    BoolVariable('WEBP', 'Build Mapnik with WEBP read', 'True'),
+    PathVariable('WEBP_INCLUDES', 'Search path for libwebp include files', '/usr/include', PathVariable.PathAccept),
+    PathVariable('WEBP_LIBS','Search path for libwebp library files','/usr/' + LIBDIR_SCHEMA_DEFAULT, PathVariable.PathAccept),
     BoolVariable('PROJ', 'Build Mapnik with proj4 support to enable transformations between many different projections', 'True'),
     PathVariable('PROJ_INCLUDES', 'Search path for PROJ.4 include files', '/usr/include', PathVariable.PathAccept),
     PathVariable('PROJ_LIBS', 'Search path for PROJ.4 library files', '/usr/' + LIBDIR_SCHEMA_DEFAULT, PathVariable.PathAccept),
     ('PKG_CONFIG_PATH', 'Use this path to point pkg-config to .pc files instead of the PKG_CONFIG_PATH environment setting',''),
 
     # Variables affecting rendering back-ends
-
-    BoolVariable('RENDERING_STATS', 'Output rendering statistics during style processing', 'False'),
 
     BoolVariable('SVG_RENDERER', 'build support for native svg renderer', 'False'),
     BoolVariable('CPP_TESTS', 'Compile the C++ tests', 'True'),
@@ -1182,15 +1184,16 @@ if not preconfigured:
     else:
         env['MISSING_DEPS'].append('libxml2')
 
-    LIBSHEADERS = [
+    REQUIRED_LIBSHEADERS = [
         ['z', 'zlib.h', True,'C'],
         [env['ICU_LIB_NAME'],'unicode/unistr.h',True,'C++'],
         ['harfbuzz', 'harfbuzz/hb.h',True,'C++'],
     ]
 
+    OPTIONAL_LIBSHEADERS = []
+
     if env['JPEG']:
-        env.Append(CPPDEFINES = '-DHAVE_JPEG')
-        LIBSHEADERS.append(['jpeg', ['stdio.h', 'jpeglib.h'], True,'C'])
+        OPTIONAL_LIBSHEADERS.append(['jpeg', ['stdio.h', 'jpeglib.h'], False,'C','-DHAVE_JPEG'])
         inc_path = env['%s_INCLUDES' % 'JPEG']
         lib_path = env['%s_LIBS' % 'JPEG']
         env.AppendUnique(CPPPATH = os.path.realpath(inc_path))
@@ -1199,8 +1202,7 @@ if not preconfigured:
         env['SKIPPED_DEPS'].extend(['jpeg'])
 
     if env['PROJ']:
-        env.Append(CPPDEFINES = '-DMAPNIK_USE_PROJ4')
-        LIBSHEADERS.append(['proj', 'proj_api.h', True,'C'])
+        OPTIONAL_LIBSHEADERS.append(['proj', 'proj_api.h', False,'C','-DMAPNIK_USE_PROJ4'])
         inc_path = env['%s_INCLUDES' % 'PROJ']
         lib_path = env['%s_LIBS' % 'PROJ']
         env.AppendUnique(CPPPATH = os.path.realpath(inc_path))
@@ -1209,8 +1211,7 @@ if not preconfigured:
         env['SKIPPED_DEPS'].extend(['proj'])
 
     if env['PNG']:
-        env.Append(CPPDEFINES = '-DHAVE_PNG')
-        LIBSHEADERS.append(['png', 'png.h', True,'C'])
+        OPTIONAL_LIBSHEADERS.append(['png', 'png.h', False,'C','-DHAVE_PNG'])
         inc_path = env['%s_INCLUDES' % 'PNG']
         lib_path = env['%s_LIBS' % 'PNG']
         env.AppendUnique(CPPPATH = os.path.realpath(inc_path))
@@ -1218,9 +1219,17 @@ if not preconfigured:
     else:
         env['SKIPPED_DEPS'].extend(['png'])
 
+    if env['WEBP']:
+        OPTIONAL_LIBSHEADERS.append(['webp', 'webp/decode.h', False,'C','-DHAVE_WEBP'])
+        inc_path = env['%s_INCLUDES' % 'WEBP']
+        lib_path = env['%s_LIBS' % 'WEBP']
+        env.AppendUnique(CPPPATH = os.path.realpath(inc_path))
+        env.AppendUnique(LIBPATH = os.path.realpath(lib_path))
+    else:
+        env['SKIPPED_DEPS'].extend(['webp'])
+
     if env['TIFF']:
-        env.Append(CPPDEFINES = '-DHAVE_TIFF')
-        LIBSHEADERS.append(['tiff', 'tiff.h', True,'C'])
+        OPTIONAL_LIBSHEADERS.append(['tiff', 'tiff.h', False,'C','-DHAVE_TIFF'])
         inc_path = env['%s_INCLUDES' % 'TIFF']
         lib_path = env['%s_LIBS' % 'TIFF']
         env.AppendUnique(CPPPATH = os.path.realpath(inc_path))
@@ -1233,7 +1242,7 @@ if not preconfigured:
         conf.prioritize_paths(silent=True)
 
     if not env['HOST']:
-        for libname, headers, required, lang in LIBSHEADERS:
+        for libname, headers, required, lang in REQUIRED_LIBSHEADERS:
             if not conf.CheckLibWithHeader(libname, headers, lang):
                 if required:
                     color_print(1, 'Could not find required header or shared library for %s' % libname)
@@ -1320,6 +1329,20 @@ if not preconfigured:
             env.Append(CPPDEFINES = '-DBOOST_REGEX_HAS_ICU')
         else:
             env['SKIPPED_DEPS'].append('boost_regex_icu')
+
+    if not env['HOST']:
+        for libname, headers, required, lang, define in OPTIONAL_LIBSHEADERS:
+            if not conf.CheckLibWithHeader(libname, headers, lang):
+                if required:
+                    color_print(1, 'Could not find required header or shared library for %s' % libname)
+                    env['MISSING_DEPS'].append(libname)
+                else:
+                    color_print(4, 'Could not find optional header or shared library for %s' % libname)
+                    env['SKIPPED_DEPS'].append(libname)
+            else:
+                env.Append(CPPDEFINES = define)
+    else:
+        env.Append(CPPDEFINES = define)
 
     env['REQUESTED_PLUGINS'] = [ driver.strip() for driver in Split(env['INPUT_PLUGINS'])]
 
