@@ -20,6 +20,8 @@
  *
  *****************************************************************************/
 
+#if defined(SHAPE_MEMORY_MAPPED_FILE)
+
 // mapnik
 #include <mapnik/debug.hpp>
 #include <mapnik/util/fs.hpp>
@@ -27,6 +29,7 @@
 
 // boost
 #include <boost/assert.hpp>
+#include <boost/interprocess/mapped_region.hpp>
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/make_shared.hpp>
 
@@ -67,8 +70,8 @@ boost::optional<mapped_region_ptr> mapped_memory_cache::find(std::string const& 
     {
         try
         {
-            file_mapping mapping(uri.c_str(),read_only);
-            mapped_region_ptr region(boost::make_shared<mapped_region>(mapping,read_only));
+            boost::interprocess::file_mapping mapping(uri.c_str(),boost::interprocess::read_only);
+            mapped_region_ptr region(boost::make_shared<boost::interprocess::mapped_region>(mapping,boost::interprocess::read_only));
 
             result.reset(region);
 
@@ -95,3 +98,5 @@ boost::optional<mapped_region_ptr> mapped_memory_cache::find(std::string const& 
 }
 
 }
+
+#endif
