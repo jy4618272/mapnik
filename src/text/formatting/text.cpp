@@ -65,10 +65,13 @@ void text_node::apply(char_properties_ptr p, feature_impl const& feature, text_l
     {
         text_str = text_str.toLower();
     }
+#if !UCONFIG_NO_BREAK_ITERATION
     else if (p->text_transform == CAPITALIZE)
     {
+        // note: requires BreakIterator support in ICU which is optional
         text_str = text_str.toTitle(NULL);
     }
+#endif
     if (text_str.length() > 0) {
         output.add_text(text_str, p);
     }
