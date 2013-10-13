@@ -23,6 +23,10 @@
 // mapnik
 #include <mapnik/debug.hpp>
 #include <mapnik/font_engine_freetype.hpp>
+
+#if defined(GRID_RENDERER)
+#endif
+
 #include <mapnik/pixel_position.hpp>
 #include <mapnik/text/face.hpp>
 #include <mapnik/util/fs.hpp>
@@ -336,8 +340,10 @@ face_set_ptr face_manager<T>::get_face_set(const std::string &name, boost::optio
     else
     {
         return get_face_set(name);
+#if defined(GRID_RENDERER)
     }
 }
+#endif
 
 #ifdef MAPNIK_THREADSAFE
 boost::mutex freetype_engine::mutex_;
@@ -347,4 +353,6 @@ std::map<std::string,std::string> freetype_engine::memory_fonts_;
 
 template class face_manager<freetype_engine>;
 
+#if defined(GRID_RENDERER)
+#endif
 }

@@ -19,7 +19,7 @@ defaults = {
     # disabled for 2.2.x since cairo tests are unstable (springmeyer)
     #'cairo': mapnik.has_cairo(),
     'cairo': False,
-    'grid': True,
+    'grid': mapnik.has_grid_renderer(),
     'agg_benchmark': False,
 }
 
