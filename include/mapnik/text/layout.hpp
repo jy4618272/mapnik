@@ -125,7 +125,7 @@ public:
     /** Iterator pointing to the place after the last line. */
     const_iterator end() const;
     /** Number of lines.*/
-    unsigned size() const;
+    unsigned num_lines() const;
 
     /** Width of a certain glyph cluster (in pixels). */
     double cluster_width(unsigned cluster) const;

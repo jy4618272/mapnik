@@ -200,7 +200,7 @@ text_layout::const_iterator text_layout::end() const
     return lines_.end();
 }
 
-unsigned text_layout::size() const
+unsigned text_layout::num_lines() const
 {
     return lines_.size();
 }

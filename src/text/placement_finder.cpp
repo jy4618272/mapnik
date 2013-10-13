@@ -268,7 +268,7 @@ bool placement_finder::find_point_placement(pixel_position pos)
     if (collision(bbox)) return false;
     /* add_marker first checks for collision and then updates the detector.*/
     if (has_marker_ && !add_marker(glyphs, pos)) return false;
-    if (layout_.size()) detector_.insert(bbox, layout_.text());
+    if (layout_.num_lines()) detector_.insert(bbox, layout_.text());
 
     /* IMPORTANT NOTE:
        x and y are relative to the center of the text
@@ -307,7 +307,7 @@ bool placement_finder::find_point_placement(pixel_position pos)
 template <typename T>
 bool placement_finder::find_line_placements(T & path, bool points)
 {
-    if (!layout_.size()) return true; //TODO
+    if (!layout_.num_lines()) return true; //TODO
     vertex_cache pp(path);
 
     bool success = false;
