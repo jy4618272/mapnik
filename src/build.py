@@ -203,6 +203,7 @@ source = Split(
     json/geometry_grammar.cpp
     json/geometry_parser.cpp
     json/feature_grammar.cpp
+    json/feature_parser.cpp
     json/feature_collection_parser.cpp
     json/geojson_generator.cpp
     text/placements/registry.cpp
