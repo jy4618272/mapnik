@@ -97,20 +97,13 @@ tiff_tests = [
     {'name': "tiff-opaque-edge-gdal2", 'sizes':[(600,400),(969,793)]},
     {'name': "tiff-opaque-edge-raster2", 'sizes':[(600,400),(969,793)]},
     {'name': "tiff-resampling", 'sizes':[(600,400)]},
-    'line-pattern-symbolizer': {'sizes':[(900, 250)],'bbox': mapnik.Box2d(-5.192, 50.189, -5.174, 50.195)},
-    'gdal-filter-factor': {'sizes':[(600,400)]},
     # https://github.com/mapnik/mapnik/issues/1622
     {'name': "tiff-edge-alignment-gdal1", 'sizes':[(256,256),(255,257)],
-	'bbox':mapnik.Box2d(-13267022.12540147,4618019.500877209,-13247454.246160466,4637587.380118214)
+        'bbox':mapnik.Box2d(-13267022.12540147,4618019.500877209,-13247454.246160466,4637587.380118214)
     },
     {'name': "tiff-edge-alignment-gdal2", 'sizes':[(256,256),(255,257)],
-	'bbox':mapnik.Box2d(-13267022.12540147,4598451.621636203,-13247454.246160466,4618019.500877209)
+        'bbox':mapnik.Box2d(-13267022.12540147,4598451.621636203,-13247454.246160466,4618019.500877209)
     },
-    'tiff-reprojection-1': {'sizes':[(250,250)]},
-
-    # disabled since fixing is not actionable: https://github.com/mapnik/mapnik/issues/1913
-    #'tiff-reprojection-2': {'sizes':[(250,250)]},
-
     # https://github.com/mapnik/mapnik/issues/1520
     # commented because these are not critical failures
     #{'name': "tiff-alpha-raster", 'sizes':[(600,400)]},
@@ -118,14 +111,12 @@ tiff_tests = [
     #{'name': "tiff-nodata-edge-raster", 'sizes':[(600,400)]},
     #{'name': "tiff-opaque-edge-raster", 'sizes':[(256,256)]},
 ]
-    'line-pattern-symbolizer-opacity':{'sizes':[(512,512)]},
-    'dst-over-compositing':{'sizes':[(512,512)]},
 
 other_tests = [
     {'name': "marker-svg-opacity"},
     {'name': "marker-multi-policy", 'sizes':[(600,400)]},
     {'name': "marker-on-line", 'sizes':[(600,400)],
-	'bbox': mapnik.Box2d(-10, 0, 15, 20)},
+        'bbox': mapnik.Box2d(-10, 0, 15, 20)},
     {'name': "marker-on-line-spacing-eq-width", 'sizes':[(600,400)]},
     {'name': "marker-on-line-spacing-eq-width-overlap", 'sizes':[(600,400)]},
     {'name': "marker_line_placement_on_points"},
@@ -133,7 +124,7 @@ other_tests = [
     {'name': "marker-with-background-image-and-hsla-transform", 'sizes':[(600,400),(400,600),(257,256)]},
     {'name': "marker-on-hex-grid", 'sizes':[(600,400),(400,600),(257,256)]},
     {'name': "whole-centroid", 'sizes':[(600,400)],
-	'bbox': mapnik.Box2d(736908, 4390316, 2060771, 5942346)},
+        'bbox': mapnik.Box2d(736908, 4390316, 2060771, 5942346)},
 ]
 
 test_names = {
