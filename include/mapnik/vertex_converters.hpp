@@ -27,9 +27,6 @@
 #include <boost/type_traits/is_same.hpp>
 
 // mpl
-#include <boost/mpl/vector.hpp>
-#include <boost/mpl/push_back.hpp>
-#include <boost/mpl/set.hpp>
 #include <boost/mpl/begin_end.hpp>
 #include <boost/mpl/distance.hpp>
 #include <boost/mpl/deref.hpp>
@@ -39,15 +36,13 @@
 #include <boost/mpl/int.hpp>
 
 // fusion
-#include <boost/fusion/include/mpl.hpp>
-#include <boost/fusion/container/vector.hpp>
 #include <boost/fusion/include/at_c.hpp>
-#include <boost/fusion/include/make_vector.hpp>
-
+#include <boost/fusion/container/vector.hpp>
 #include <boost/array.hpp>
 
 // mapnik
 #include <mapnik/agg_helpers.hpp>
+#include <mapnik/ctrans.hpp>
 #include <mapnik/offset_converter.hpp>
 #include <mapnik/simplify_converter.hpp>
 #include <mapnik/noncopyable.hpp>
@@ -60,8 +55,6 @@
 #include "agg_conv_stroke.h"
 #include "agg_conv_dash.h"
 #include "agg_conv_transform.h"
-#include "agg_conv_clipper.h"
-#include "agg_path_storage.h"
 
 // stl
 #include <stdexcept>
@@ -71,7 +64,6 @@ namespace mapnik {
 struct transform_tag {};
 struct clip_line_tag {};
 struct clip_poly_tag {};
-struct clipper_tag {};
 struct close_poly_tag {};
 struct smooth_tag {};
 struct simplify_tag {};
@@ -189,26 +181,6 @@ struct converter_traits<T,mapnik::clip_poly_tag>
     {
         typename boost::mpl::at<Args,boost::mpl::int_<0> >::type box = boost::fusion::at_c<0>(args);
         geom.clip_box(box.minx(),box.miny(),box.maxx(),box.maxy());
-    }
-};
-
-template <typename T>
-struct converter_traits<T,mapnik::clipper_tag>
-{
-    typedef T geometry_type;
-    typedef typename agg::conv_clipper<geometry_type,agg::path_storage> conv_type;
-    template <typename Args>
-    static void setup(geometry_type & geom, Args const& args)
-    {
-        typename boost::mpl::at<Args,boost::mpl::int_<0> >::type box = boost::fusion::at_c<0>(args);
-        agg::path_storage * ps = new agg::path_storage(); // FIXME: this will leak memory!
-        ps->move_to(box.minx(),box.miny());
-        ps->line_to(box.minx(),box.maxy());
-        ps->line_to(box.maxx(),box.maxy());
-        ps->line_to(box.maxx(),box.miny());
-        ps->close_polygon();
-        geom.attach2(*ps, agg::clipper_non_zero);
-        //geom.reverse(true);
     }
 };
 
