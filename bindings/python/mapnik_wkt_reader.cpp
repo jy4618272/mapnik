@@ -2,7 +2,7 @@
  *
  * This file is part of Mapnik (c++ mapping toolkit)
  *
- * Copyright (C) 2012 Artem Pavlenko
+ * Copyright (C) 2013 Artem Pavlenko, Jean-Francois Doyon
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -20,13 +20,36 @@
  *
  *****************************************************************************/
 
+// boost
+#include <boost/python.hpp>
+#include <boost/noncopyable.hpp>
+#include <boost/shared_ptr.hpp>
+#include <boost/ptr_container/ptr_vector.hpp>
+#include <boost/make_shared.hpp>
 // mapnik
-#include <mapnik/expression_grammar_impl.hpp>
-// stl
-#include <string>
+#include <mapnik/geometry.hpp>
+#include <mapnik/wkt/wkt_factory.hpp>
 
-namespace mapnik {
+namespace  impl {
 
-template struct mapnik::expression_grammar<std::string::const_iterator>;
+typedef boost::ptr_vector<mapnik::geometry_type> path_type;
 
+boost::shared_ptr<path_type> from_wkt(mapnik::wkt_parser & p, std::string const& wkt)
+{
+    boost::shared_ptr<path_type> paths = boost::make_shared<path_type>();
+    if (!p.parse(wkt, *paths))
+        throw std::runtime_error("Failed to parse WKT");
+    return paths;
+}
+
+}
+
+void export_wkt_reader()
+{
+    using mapnik::wkt_parser;
+    using namespace boost::python;
+
+    class_<wkt_parser, boost::noncopyable>("WKTReader",init<>())
+        .def("read",&impl::from_wkt)
+        ;
 }
