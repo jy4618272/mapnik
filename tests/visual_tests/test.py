@@ -97,6 +97,7 @@ tiff_tests = [
     {'name': "tiff-opaque-edge-gdal2", 'sizes':[(600,400),(969,793)]},
     {'name': "tiff-opaque-edge-raster2", 'sizes':[(600,400),(969,793)]},
     {'name': "tiff-resampling", 'sizes':[(600,400)]},
+    'line-pattern-symbolizer': {'sizes':[(900, 250)],'bbox': mapnik.Box2d(-5.192, 50.189, -5.174, 50.195)},
     'gdal-filter-factor': {'sizes':[(600,400)]},
     # https://github.com/mapnik/mapnik/issues/1622
     {'name': "tiff-edge-alignment-gdal1", 'sizes':[(256,256),(255,257)],
