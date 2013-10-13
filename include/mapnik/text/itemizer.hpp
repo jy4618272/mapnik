@@ -25,6 +25,7 @@
 
 //mapnik
 #include <mapnik/text/char_properties_ptr.hpp>
+#include <mapnik/value_types.hpp>
 
 // stl
 #include <string>
@@ -61,10 +62,10 @@ class text_itemizer
 {
 public:
     text_itemizer();
-    void add_text(UnicodeString str, char_properties_ptr format);
+    void add_text(mapnik::value_unicode_string str, char_properties_ptr format);
     std::list<text_item> const& itemize(unsigned start=0, unsigned end=0);
     void clear();
-    UnicodeString const& get_text() const { return text_; }
+    mapnik::value_unicode_string const& get_text() const { return text_; }
     /** Returns the start and end position of a certain line.
      *
      * Only forced line breaks with \n characters are handled here.
@@ -85,7 +86,7 @@ private:
     typedef std::list<format_run_t> format_run_list;
     typedef std::list<script_run_t> script_run_list;
     typedef std::list<direction_run_t> direction_run_list;
-    UnicodeString text_;
+    mapnik::value_unicode_string text_;
     /// Format runs are always sorted by char index
     format_run_list format_runs_;
     /// Directions runs are always in visual order! This is different from

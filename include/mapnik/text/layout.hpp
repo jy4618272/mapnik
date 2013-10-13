@@ -27,6 +27,8 @@
 #include <mapnik/font_engine_freetype.hpp>
 #include <mapnik/text/glyph_info.hpp>
 #include <mapnik/text/char_properties_ptr.hpp>
+#include <mapnik/value_types.hpp>
+
 
 //stl
 #include <vector>
@@ -88,8 +90,8 @@ public:
     typedef std::vector<text_line_ptr> line_vector;
     typedef line_vector::const_iterator const_iterator;
     text_layout(face_manager_freetype & font_manager, double scale_factor);
-    void add_text(UnicodeString const& str, char_properties_ptr format);
-    UnicodeString const& get_text() const;
+    void add_text(mapnik::value_unicode_string const& str, char_properties_ptr format);
+    mapnik::value_unicode_string const& get_text() const;
 
     void layout(double wrap_width, unsigned text_ratio, bool wrap_before);
 

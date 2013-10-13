@@ -40,7 +40,7 @@ void text_layout::shape_text(text_line_ptr line)
 {
     unsigned start = line->get_first_char();
     unsigned end = line->get_last_char();
-    UnicodeString const& text = itemizer_.get_text();
+    mapnik::value_unicode_string const& text = itemizer_.get_text();
 
     size_t length = end - start;
     if (!length) return;

@@ -38,12 +38,12 @@ text_layout::text_layout(face_manager_freetype &font_manager, double scale_facto
 {
 }
 
-void text_layout::add_text(const UnicodeString &str, char_properties_ptr format)
+void text_layout::add_text(mapnik::value_unicode_string const& str, char_properties_ptr format)
 {
     itemizer_.add_text(str, format);
 }
 
-const UnicodeString &text_layout::get_text() const
+const value_unicode_string &text_layout::get_text() const
 {
     return itemizer_.get_text();
 }
@@ -78,7 +78,7 @@ void text_layout::break_line(text_line_ptr line, double wrap_width, unsigned tex
         wrap_width = wrap_at;
     }
 
-    UnicodeString const& text = itemizer_.get_text();
+    mapnik::value_unicode_string const& text = itemizer_.get_text();
     Locale locale; //TODO: Is the default constructor correct?
     UErrorCode status = U_ZERO_ERROR;
     BreakIterator *breakitr = BreakIterator::createLineInstance(locale, status);

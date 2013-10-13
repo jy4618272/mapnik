@@ -56,7 +56,7 @@ node_ptr text_node::from_xml(xml_node const& xml)
 
 void text_node::apply(char_properties_ptr p, feature_impl const& feature, text_layout &output) const
 {
-    UnicodeString text_str = boost::apply_visitor(evaluate<feature_impl,value_type>(feature), *text_).to_unicode();
+    mapnik::value_unicode_string text_str = boost::apply_visitor(evaluate<feature_impl,value_type>(feature), *text_).to_unicode();
     if (p->text_transform == UPPERCASE)
     {
         text_str = text_str.toUpper();
