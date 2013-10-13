@@ -140,7 +140,7 @@ void agg_text_renderer<T>::render(glyph_positions_ptr pos)
     prepare_glyphs(pos);
     FT_Error  error;
     FT_Vector start;
-    unsigned height = pixmap_.height();
+    int height = pixmap_.height();
     pixel_position const& base_point = pos->get_base_point();
 
     start.x =  static_cast<FT_Pos>(base_point.x * (1 << 6));
