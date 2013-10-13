@@ -41,7 +41,7 @@ void agg_renderer<T>::process(text_symbolizer const& sym,
             width_, height_,
             scale_factor_,
             t_, font_manager_, *detector_,
-            query_extent_);
+            clipping_extent());
 
     agg_text_renderer<T> ren(*current_buffer_, sym.get_halo_rasterizer(), sym.comp_op(), scale_factor_, font_manager_.get_stroker());
 
