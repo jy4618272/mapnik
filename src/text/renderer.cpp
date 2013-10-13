@@ -258,7 +258,7 @@ void grid_text_renderer<T>::render(glyph_positions_ptr pos, value_integer featur
                            feature_id,
                            bit->left,
                            height - bit->top,
-                           halo_radius);
+                           static_cast<int>(halo_radius));
         }
     }
 }
