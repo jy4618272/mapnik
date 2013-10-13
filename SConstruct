@@ -1441,7 +1441,7 @@ if not preconfigured:
                 env["CAIRO_ALL_LIBS"] = ['cairo']
                 if env['RUNTIME_LINK'] == 'static':
                     env["CAIRO_ALL_LIBS"].extend(
-                        ['pixman-1','expat','fontconfig','iconv']
+                        ['pixman-1','expat','fontconfig']
                     )
                 # todo - run actual checkLib?
                 env['HAS_CAIRO'] = True
