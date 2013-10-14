@@ -315,13 +315,15 @@ bool placement_finder::find_line_placements(T & path, bool points)
     {
         if (points)
         {
-            if (pp.length() == 0.0)
+            if (pp.length() <= 0.001)
             {
                 success = find_point_placement(pp.current_position()) || success;
                 continue;
             }
         } else {
             if ((pp.length() < info_->properties.minimum_path_length * scale_factor_)
+                ||
+                (pp.length() <= 0.001) /* Clipping removed whole geometry */
                 ||
                 (pp.length() < layout_.width())) continue;
         }
