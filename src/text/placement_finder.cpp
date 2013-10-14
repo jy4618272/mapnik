@@ -69,7 +69,7 @@ public:
     bool next()
     {
         values_tried_ ++;
-        if (values_tried > 255)
+        if (values_tried_ > 255)
         {
             /* This point should not be reached during normal operation. But I can think of
              * cases where very bad spacing and or tolerance values are choosen and the
