@@ -4,7 +4,7 @@
 namespace mapnik
 {
 struct char_properties;
-typedef boost::shared_ptr<char_properties> char_properties_ptr;
+typedef std::shared_ptr<char_properties> char_properties_ptr;
 }
 
 #endif // CHAR_PROPERTIES_PTR_HPP

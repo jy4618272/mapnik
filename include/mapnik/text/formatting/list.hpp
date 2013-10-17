@@ -49,4 +49,3 @@ protected:
 } //ns mapnik
 
 #endif // FORMATTING_LIST_HPP
-

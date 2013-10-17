@@ -95,7 +95,7 @@ private:
     bool first_line_;
 };
 
-typedef boost::shared_ptr<text_line> text_line_ptr;
+typedef std::shared_ptr<text_line> text_line_ptr;
 
 class text_layout
 {

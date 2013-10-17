@@ -34,7 +34,7 @@
 
 // boost
 #include <memory>
-#include <boost/make_shared.hpp>
+
 #include <boost/ptr_container/ptr_vector.hpp>
 #include <boost/optional.hpp>
 #ifdef MAPNIK_THREADSAFE
@@ -53,11 +53,11 @@ namespace mapnik
 //    typedef container_type::size_type size_type;
 
 class stroker;
-typedef boost::shared_ptr<stroker> stroker_ptr;
+typedef std::shared_ptr<stroker> stroker_ptr;
 class font_face_set;
-typedef boost::shared_ptr<font_face_set> face_set_ptr;
+typedef std::shared_ptr<font_face_set> face_set_ptr;
 class font_face;
-typedef boost::shared_ptr<font_face> face_ptr;
+typedef std::shared_ptr<font_face> face_ptr;
 
 
 class MAPNIK_DECL freetype_engine

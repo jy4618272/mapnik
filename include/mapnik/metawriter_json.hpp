@@ -123,7 +123,7 @@ private:
 };
 
 /** Shared pointer to metawriter_json_stream object. */
-typedef boost::shared_ptr<metawriter_json_stream> metawriter_json_stream_ptr;
+typedef std::shared_ptr<metawriter_json_stream> metawriter_json_stream_ptr;
 
 /** JSON writer. */
 class metawriter_json : public metawriter_json_stream
@@ -152,7 +152,7 @@ protected:
 };
 
 /** Shared pointer to metawriter_json object. */
-typedef boost::shared_ptr<metawriter_json> metawriter_json_ptr;
+typedef std::shared_ptr<metawriter_json> metawriter_json_ptr;
 
 }
 

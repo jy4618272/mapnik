@@ -30,10 +30,6 @@
 #include <mapnik/vertex_cache.hpp>
 #include <mapnik/expression_evaluator.hpp>
 
-//boost
-#include <boost/make_shared.hpp>
-#include <boost/foreach.hpp>
-
 // agg
 #include "agg_conv_clip_polyline.h"
 
@@ -254,7 +250,7 @@ double placement_finder::jalign_offset(double line_width) const //TODO
 
 bool placement_finder::find_point_placement(pixel_position pos)
 {
-    glyph_positions_ptr glyphs = boost::make_shared<glyph_positions>();
+    glyph_positions_ptr glyphs = std::make_shared<glyph_positions>();
 
     /* Find text origin. */
     pixel_position displacement = scale_factor_ * info_->properties.displacement + alignment_offset();
@@ -387,7 +383,7 @@ bool placement_finder::single_line_placement(vertex_cache &pp, text_upright_e or
      ********************************************************************************/
     vertex_cache::scoped_state s(pp);
 
-    glyph_positions_ptr glyphs = boost::make_shared<glyph_positions>();
+    glyph_positions_ptr glyphs = std::make_shared<glyph_positions>();
     std::vector<box2d<double> > bboxes;
     bboxes.reserve(layout_.text().length());
     unsigned upside_down_glyph_count = 0;
@@ -473,7 +469,7 @@ bool placement_finder::single_line_placement(vertex_cache &pp, text_upright_e or
             return false;
         }
     }
-    BOOST_FOREACH(box2d<double> bbox, bboxes)
+    for (box2d<double> const& bbox : bboxes)
     {
         detector_.insert(bbox, layout_.text());
     }

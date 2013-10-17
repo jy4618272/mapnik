@@ -24,7 +24,7 @@
 #include <mapnik/offset_converter.hpp>
 
 // boost
-#include <boost/make_shared.hpp>
+
 
 namespace mapnik
 {

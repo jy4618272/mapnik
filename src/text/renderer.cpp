@@ -29,7 +29,7 @@
 #include <mapnik/text/face.hpp>
 
 // boost
-#include <boost/make_shared.hpp>
+
 
 // freetype2
 extern "C"
@@ -58,7 +58,7 @@ text_renderer::text_renderer (halo_rasterizer_e rasterizer, composite_mode_e com
     : rasterizer_(rasterizer),
       comp_op_(comp_op),
       scale_factor_(scale_factor),
-      glyphs_(boost::make_shared<glyph_vector>()),
+      glyphs_(std::make_shared<glyph_vector>()),
       stroker_(stroker)
 {}
 

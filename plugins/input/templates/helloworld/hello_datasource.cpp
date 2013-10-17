@@ -3,7 +3,7 @@
 #include "hello_featureset.hpp"
 
 // boost
-#include <boost/make_shared.hpp>
+
 
 
 using mapnik::datasource;

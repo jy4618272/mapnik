@@ -22,7 +22,7 @@
 
 // boost
 #include <boost/python.hpp>
-#include <boost/make_shared.hpp>
+
 
 // mapnik
 #include <mapnik/debug.hpp>

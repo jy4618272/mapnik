@@ -21,7 +21,7 @@
  *****************************************************************************/
 
 #include <mapnik/text/placements/dummy.hpp>
-#include <boost/make_shared.hpp>
+
 
 namespace mapnik
 {

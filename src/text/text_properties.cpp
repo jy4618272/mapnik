@@ -31,7 +31,7 @@
 #include <mapnik/config_error.hpp>
 
 // boost
-#include <boost/make_shared.hpp>
+
 #include <boost/property_tree/ptree.hpp>
 
 namespace mapnik
@@ -118,7 +118,7 @@ text_symbolizer_properties::text_symbolizer_properties() :
     wrap_before(false),
     rotate_displacement(false),
     upright(UPRIGHT_AUTO),
-    format(boost::make_shared<char_properties>()),
+    format(std::make_shared<char_properties>()),
     tree_()
 {
 

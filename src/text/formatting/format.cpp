@@ -28,7 +28,7 @@
 #include <mapnik/xml_node.hpp>
 
 //boost
-#include <boost/make_shared.hpp>
+
 #include <boost/property_tree/ptree.hpp>
 
 namespace mapnik {
@@ -79,7 +79,7 @@ node_ptr format_node::from_xml(xml_node const& xml)
 
 void format_node::apply(char_properties_ptr p, const feature_impl &feature, text_layout &output) const
 {
-    char_properties_ptr new_properties = boost::make_shared<char_properties>(*p);
+    char_properties_ptr new_properties = std::make_shared<char_properties>(*p);
     if (face_name) new_properties->face_name = *face_name;
     if (text_size) new_properties->text_size = *text_size;
     if (character_spacing) new_properties->character_spacing = *character_spacing;

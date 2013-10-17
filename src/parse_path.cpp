@@ -31,7 +31,7 @@
 // boost
 #include <boost/variant.hpp>
 
-#include <boost/make_shared.hpp>
+
 
 // stl
 #include <stdexcept>

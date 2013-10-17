@@ -40,7 +40,7 @@ namespace mapnik
 {
 
 class vertex_cache;
-typedef boost::shared_ptr<vertex_cache> vertex_cache_ptr;
+typedef std::shared_ptr<vertex_cache> vertex_cache_ptr;
 
 /** Caches all path points and their lengths. Allows easy moving in both directions. */
 class vertex_cache

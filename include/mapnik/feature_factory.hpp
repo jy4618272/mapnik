@@ -28,7 +28,7 @@
 #include <mapnik/value_types.hpp>
 
 // boost
-#include <boost/make_shared.hpp>
+
 //#include <boost/pool/pool_alloc.hpp>
 
 namespace mapnik

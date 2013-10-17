@@ -57,7 +57,7 @@ struct marker_info
     marker_ptr marker;
     agg::trans_affine transform;
 };
-typedef boost::shared_ptr<marker_info> marker_info_ptr;
+typedef std::shared_ptr<marker_info> marker_info_ptr;
 
 /** Stores positions of glphys.
  *
@@ -88,7 +88,7 @@ private:
     pixel_position marker_pos_;
     box2d<double> bbox_;
 };
-typedef boost::shared_ptr<glyph_positions> glyph_positions_ptr;
+typedef std::shared_ptr<glyph_positions> glyph_positions_ptr;
 
 typedef std::list<glyph_positions_ptr> placements_list;
 }

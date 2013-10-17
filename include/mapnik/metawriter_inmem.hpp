@@ -111,7 +111,7 @@ private:
 };
 
 /** Shared pointer to metawriter_inmem object. */
-typedef boost::shared_ptr<metawriter_inmem> metawriter_inmem_ptr;
+typedef std::shared_ptr<metawriter_inmem> metawriter_inmem_ptr;
 
 }
 

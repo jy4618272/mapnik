@@ -33,7 +33,7 @@ namespace mapnik
 {
 
 class font_face;
-typedef boost::shared_ptr<font_face> face_ptr;
+typedef std::shared_ptr<font_face> face_ptr;
 
 
 typedef unsigned glyph_index_t;

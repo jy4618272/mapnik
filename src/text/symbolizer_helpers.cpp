@@ -143,8 +143,8 @@ void text_symbolizer_helper::initialize_geometries()
 
         // don't bother with empty geometries
         if (geom.size() == 0) continue;
-        eGeomType type = geom.type();
-        if (type == Polygon)
+        mapnik::geometry_type::types type = geom.type();
+        if (type == geometry_type::types::Polygon)
         {
             largest_box_only = sym_.largest_bbox_only();
             if (sym_.get_minimum_path_length() > 0)
@@ -207,7 +207,7 @@ void text_symbolizer_helper::initialize_points()
             // https://github.com/mapnik/mapnik/issues/1423
             bool success = false;
             // https://github.com/mapnik/mapnik/issues/1350
-            if (geom.type() == LineString)
+            if (geom.type() == geometry_type::types::LineString)
             {
                 success = label::middle_point(geom, label_x,label_y);
             }
@@ -292,7 +292,7 @@ void text_symbolizer_helper::init_marker()
     box2d<double> bbox(px0, py0, px1, py1);
     bbox.expand_to_include(px2, py2);
     bbox.expand_to_include(px3, py3);
-    finder_.set_marker(boost::make_shared<marker_info>(m, trans), bbox, sym.get_unlock_image(), sym.get_shield_displacement());
+    finder_.set_marker(std::make_shared<marker_info>(m, trans), bbox, sym.get_unlock_image(), sym.get_shield_displacement());
 }
 
 template text_symbolizer_helper::text_symbolizer_helper(const text_symbolizer &sym, const feature_impl &feature,

@@ -414,7 +414,7 @@ void export_text_placement()
 
 
     class_with_converter<char_properties,
-            boost::shared_ptr<char_properties> >
+            std::shared_ptr<char_properties> >
         ("CharProperties")
         .def_readwrite_convert("text_transform", &char_properties::text_transform)
         .def_readwrite_convert("fontset", &char_properties::fontset)

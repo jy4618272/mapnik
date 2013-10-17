@@ -52,7 +52,7 @@ protected:
     halo_rasterizer_e rasterizer_;
     composite_mode_e comp_op_;
     double scale_factor_;
-    boost::shared_ptr<glyph_vector> glyphs_;
+    std::shared_ptr<glyph_vector> glyphs_;
     stroker_ptr stroker_;
 
 };

@@ -60,7 +60,7 @@
 #include <cairo-version.h>
 
 // boost
-#include <boost/make_shared.hpp>
+
 #include <boost/math/special_functions/round.hpp>
 
 // agg

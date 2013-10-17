@@ -47,7 +47,7 @@ public:
 };
 
 class metawriter;
-typedef boost::shared_ptr<metawriter> metawriter_ptr;
+typedef std::shared_ptr<metawriter> metawriter_ptr;
 typedef std::pair<metawriter_ptr, metawriter_properties> metawriter_with_properties;
 
 /** Implementation of std::map that also returns const& for operator[]. */

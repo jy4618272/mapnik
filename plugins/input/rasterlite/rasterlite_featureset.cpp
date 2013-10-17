@@ -32,7 +32,7 @@
 #include <mapnik/feature_factory.hpp>
 
 // boost
-#include <boost/make_shared.hpp>
+
 
 
 using mapnik::coord2d;

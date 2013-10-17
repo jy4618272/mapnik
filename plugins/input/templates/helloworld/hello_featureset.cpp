@@ -4,7 +4,7 @@
 #include <mapnik/value_types.hpp>
 
 // boost
-#include <boost/make_shared.hpp>
+
 
 #include "hello_featureset.hpp"
 

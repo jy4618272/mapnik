@@ -29,11 +29,11 @@
 #include <mapnik/text/layout.hpp>
 
 //boost
-#include <boost/make_shared.hpp>
+
 
 // boost
 #include <boost/property_tree/ptree.hpp>
-#include <boost/make_shared.hpp>
+
 
 namespace mapnik
 {

@@ -79,7 +79,7 @@ private:
     mutable std::map<glyph_index_t, glyph_info> dimension_cache_;
     mutable double char_height_;
 };
-typedef boost::shared_ptr<font_face> face_ptr;
+typedef std::shared_ptr<font_face> face_ptr;
 
 
 class MAPNIK_DECL font_face_set : private mapnik::noncopyable
@@ -97,7 +97,7 @@ public:
 private:
     std::vector<face_ptr> faces_;
 };
-typedef boost::shared_ptr<font_face_set> face_set_ptr;
+typedef std::shared_ptr<font_face_set> face_set_ptr;
 
 
 // FT_Stroker wrapper

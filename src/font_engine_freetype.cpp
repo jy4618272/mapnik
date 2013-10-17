@@ -34,7 +34,6 @@
 // boost
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/make_shared.hpp>
 
 // stl
 #include <algorithm>
@@ -275,35 +274,10 @@ stroker_ptr freetype_engine::create_stroker()
     return stroker_ptr();
 }
 
-<<<<<<< HEAD
-void font_face_set::add(face_ptr face)
-{
-    faces_.push_back(face);
-    dimension_cache_.clear(); //Make sure we don't use old cached data
-}
 
-font_face_set::size_type font_face_set::size() const
-{
-    return faces_.size();
-}
 
-glyph_ptr font_face_set::get_glyph(unsigned c) const
-{
-    for ( face_ptr const& face : faces_)
-    {
-        FT_UInt g = face->get_char(c);
-        if (g) return std::make_shared<font_glyph>(face, g);
-    }
-
-    // Final fallback to empty square if nothing better in any font
-    return std::make_shared<font_glyph>(*faces_.begin(), 0);
-}
-
-char_info font_face_set::character_dimensions(unsigned int c)
-=======
 template <typename T>
 face_ptr face_manager<T>::get_face(const std::string &name)
->>>>>>> hb-merge
 {
     face_ptr_cache_type::iterator itr;
     itr = face_ptr_cache_.find(name);
@@ -311,101 +285,7 @@ face_ptr face_manager<T>::get_face(const std::string &name)
     {
         return itr->second;
     }
-<<<<<<< HEAD
-
-    FT_Vector pen;
-    FT_Error  error;
-
-    pen.x = 0;
-    pen.y = 0;
-
-    FT_BBox glyph_bbox;
-    FT_Glyph image;
-
-    glyph_ptr glyph = get_glyph(c);
-    FT_Face face = glyph->get_face()->get_face();
-
-    FT_Set_Transform(face, 0, &pen);
-
-    error = FT_Load_Glyph (face, glyph->get_index(), FT_LOAD_NO_HINTING);
-    if ( error )
-        return char_info();
-
-    error = FT_Get_Glyph(face->glyph, &image);
-    if ( error )
-        return char_info();
-
-    FT_Glyph_Get_CBox(image, ft_glyph_bbox_pixels, &glyph_bbox);
-    FT_Done_Glyph(image);
-
-    unsigned tempx = face->glyph->advance.x >> 6;
-
-    char_info dim(c, tempx, glyph_bbox.yMax, glyph_bbox.yMin, face->size->metrics.height/64.0);
-    dimension_cache_.insert(std::make_pair(c, dim));
-    return dim;
-}
-
-
-void font_face_set::get_string_info(string_info & info, mapnik::value_unicode_string const& ustr, char_properties *format)
-{
-    double avg_height = character_dimensions('X').height();
-    UErrorCode err = U_ZERO_ERROR;
-    mapnik::value_unicode_string reordered;
-    mapnik::value_unicode_string shaped;
-
-    int32_t length = ustr.length();
-
-    UBiDi *bidi = ubidi_openSized(length, 0, &err);
-    ubidi_setPara(bidi, ustr.getBuffer(), length, UBIDI_DEFAULT_LTR, 0, &err);
-
-    ubidi_writeReordered(bidi, reordered.getBuffer(length),
-                         length, UBIDI_DO_MIRRORING, &err);
-
-    reordered.releaseBuffer(length);
-
-    u_shapeArabic(reordered.getBuffer(), length,
-                  shaped.getBuffer(length), length,
-                  U_SHAPE_LETTERS_SHAPE | U_SHAPE_LENGTH_FIXED_SPACES_NEAR |
-                  U_SHAPE_TEXT_DIRECTION_VISUAL_LTR, &err);
-
-    shaped.releaseBuffer(length);
-
-    if (U_SUCCESS(err)) {
-        U_NAMESPACE_QUALIFIER StringCharacterIterator iter(shaped);
-        for (iter.setToStart(); iter.hasNext();) {
-            UChar ch = iter.nextPostInc();
-            char_info char_dim = character_dimensions(ch);
-            char_dim.format = format;
-            char_dim.avg_height = avg_height;
-            info.add_info(char_dim);
-        }
-    }
-
-
-#if (U_ICU_VERSION_MAJOR_NUM*100 + U_ICU_VERSION_MINOR_NUM >= 406)
-    if (ubidi_getBaseDirection(ustr.getBuffer(), length) == UBIDI_RTL)
-    {
-        info.set_rtl(true);
-    }
-#endif
-
-    ubidi_close(bidi);
-}
-
-void font_face_set::set_pixel_sizes(unsigned size)
-{
-    for ( face_ptr const& face : faces_)
-    {
-        face->set_pixel_sizes(size);
-    }
-}
-
-void font_face_set::set_character_sizes(double size)
-{
-    for ( face_ptr const& face : faces_)
-=======
     else
->>>>>>> hb-merge
     {
         face_ptr face = engine_.create_face(name);
         if (face)
@@ -419,7 +299,7 @@ void font_face_set::set_character_sizes(double size)
 template <typename T>
 face_set_ptr face_manager<T>::get_face_set(const std::string &name)
 {
-    face_set_ptr face_set = boost::make_shared<font_face_set>();
+    face_set_ptr face_set = std::make_shared<font_face_set>();
     if (face_ptr face = get_face(name))
     {
         face_set->add(face);
@@ -431,7 +311,7 @@ template <typename T>
 face_set_ptr face_manager<T>::get_face_set(const font_set &fset)
 {
     std::vector<std::string> const& names = fset.get_face_names();
-    face_set_ptr face_set = boost::make_shared<font_face_set>();
+    face_set_ptr face_set = std::make_shared<font_face_set>();
     for (std::vector<std::string>::const_iterator name = names.begin(); name != names.end(); ++name)
     {
         face_ptr face = get_face(*name);

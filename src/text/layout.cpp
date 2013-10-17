@@ -26,9 +26,6 @@
 // ICU
 #include <unicode/brkiter.h>
 
-// boost
-#include <boost/make_shared.hpp>
-
 namespace mapnik
 {
 text_layout::text_layout(face_manager_freetype &font_manager, double scale_factor)
@@ -54,7 +51,7 @@ void text_layout::layout(double wrap_width, unsigned text_ratio, bool wrap_befor
     for (unsigned i = 0; i < num_lines; i++)
     {
         std::pair<unsigned, unsigned> line_limits = itemizer_.line(i);
-        text_line_ptr line = boost::make_shared<text_line>(line_limits.first, line_limits.second);
+        text_line_ptr line = std::make_shared<text_line>(line_limits.first, line_limits.second);
         break_line(line, wrap_width, text_ratio, wrap_before); //Break line if neccessary
     }
 }
@@ -127,7 +124,7 @@ void text_layout::break_line(text_line_ptr line, double wrap_width, unsigned tex
         if (break_position < line->first_char()) break_position = line->first_char();
         if (break_position > line->last_char()) break_position = line->last_char();
 
-        text_line_ptr new_line = boost::make_shared<text_line>(last_break_position, break_position);
+        text_line_ptr new_line = std::make_shared<text_line>(last_break_position, break_position);
         clear_cluster_widths(last_break_position, break_position);
         shape_text(new_line);
         add_line(new_line);
@@ -142,7 +139,7 @@ void text_layout::break_line(text_line_ptr line, double wrap_width, unsigned tex
     }
     else if (last_break_position != line->last_char())
     {
-        text_line_ptr new_line = boost::make_shared<text_line>(last_break_position, line->last_char());
+        text_line_ptr new_line = std::make_shared<text_line>(last_break_position, line->last_char());
         clear_cluster_widths(last_break_position, line->last_char());
         shape_text(new_line);
         add_line(new_line);
