@@ -21,12 +21,13 @@
  *****************************************************************************/
 
 // mapnik
-#include <mapnik/feature.hpp>
 #include <mapnik/agg_renderer.hpp>
-#include <mapnik/agg_rasterizer.hpp>
-#include <mapnik/symbolizer_helpers.hpp>
 #include <mapnik/graphics.hpp>
-#include <mapnik/font_util.hpp>
+#include <mapnik/text/symbolizer_helpers.hpp>
+#include <mapnik/text/renderer.hpp>
+
+// boost
+#include <boost/foreach.hpp>
 
 namespace mapnik {
 
@@ -35,28 +36,19 @@ void agg_renderer<T>::process(text_symbolizer const& sym,
                               mapnik::feature_impl & feature,
                               proj_transform const& prj_trans)
 {
-    text_symbolizer_helper<face_manager<freetype_engine>,
-        label_collision_detector4> helper(
+    text_symbolizer_helper helper(
             sym, feature, prj_trans,
-            width_,height_,
+            width_, height_,
             scale_factor_,
             t_, font_manager_, *detector_,
             clipping_extent());
 
-    text_renderer<T> ren(*current_buffer_,
-                         font_manager_,
-                         sym.get_halo_rasterizer(),
-                         sym.comp_op(),
-                         scale_factor_);
+    agg_text_renderer<T> ren(*current_buffer_, sym.get_halo_rasterizer(), sym.comp_op(), scale_factor_, font_manager_.get_stroker());
 
-    while (helper.next()) 
+    placements_list const& placements = helper.get();
+    BOOST_FOREACH(glyph_positions_ptr glyphs, placements)
     {
-        placements_type const& placements = helper.placements();
-        for (unsigned int ii = 0; ii < placements.size(); ++ii)
-        {
-            ren.prepare_glyphs(placements[ii]);
-            ren.render(placements[ii].center);
-        }
+        ren.render(glyphs);
     }
 }
 

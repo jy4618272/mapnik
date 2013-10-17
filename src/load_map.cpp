@@ -41,8 +41,8 @@
 #include <mapnik/parse_transform.hpp>
 #include <mapnik/raster_colorizer.hpp>
 #include <mapnik/svg/svg_path_parser.hpp>
-#include <mapnik/text_placements/registry.hpp>
-#include <mapnik/text_placements/dummy.hpp>
+#include <mapnik/text/placements/registry.hpp>
+#include <mapnik/text/placements/dummy.hpp>
 #include <mapnik/symbolizer.hpp>
 #include <mapnik/rule.hpp>
 #include <mapnik/config_error.hpp>
@@ -1191,10 +1191,10 @@ void map_parser::parse_text_symbolizer(rule & rule, xml_node const& sym)
             placement_finder = std::make_shared<text_placements_dummy>();
             placement_finder->defaults.from_xml(sym, fontsets_);
         }
-        if (strict_ &&
-            !placement_finder->defaults.format.fontset)
+        if (strict_ && (!placement_finder->defaults.format->fontset ||
+            !placement_finder->defaults.format->fontset->size()))
         {
-            ensure_font_face(placement_finder->defaults.format.face_name);
+            ensure_font_face(placement_finder->defaults.format->face_name);
         }
 
         text_symbolizer text_symbol = text_symbolizer(placement_finder);
@@ -1224,9 +1224,10 @@ void map_parser::parse_shield_symbolizer(rule & rule, xml_node const& sym)
         }
         placement_finder->defaults.from_xml(sym, fontsets_);
         if (strict_ &&
-            !placement_finder->defaults.format.fontset)
+            (!placement_finder->defaults.format->fontset ||
+            !placement_finder->defaults.format->fontset->size()))
         {
-            ensure_font_face(placement_finder->defaults.format.face_name);
+            ensure_font_face(placement_finder->defaults.format->face_name);
         }
 
         shield_symbolizer shield_symbol = shield_symbolizer(placement_finder);

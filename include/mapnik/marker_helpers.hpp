@@ -54,6 +54,7 @@
 // boost
 #include <boost/optional.hpp>
 #include <boost/variant/apply_visitor.hpp>
+#include <boost/foreach.hpp>
 
 namespace mapnik {
 

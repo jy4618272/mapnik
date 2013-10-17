@@ -34,7 +34,7 @@
 #include <mapnik/point_symbolizer.hpp>
 #include <mapnik/markers_symbolizer.hpp>
 #include <mapnik/feature_type_style.hpp>
-#include <mapnik/text_properties.hpp>
+#include <mapnik/text/text_properties.hpp>
 #include <mapnik/config_error.hpp>
 #include <mapnik/raster_colorizer.hpp>
 
@@ -400,6 +400,7 @@ compile_get_opt_attr(label_placement_e);
 compile_get_opt_attr(vertical_alignment_e);
 compile_get_opt_attr(horizontal_alignment_e);
 compile_get_opt_attr(justify_alignment_e);
+compile_get_opt_attr(text_upright_e);
 compile_get_opt_attr(halo_rasterizer_e);
 compile_get_opt_attr(expression_ptr);
 compile_get_attr(std::string);

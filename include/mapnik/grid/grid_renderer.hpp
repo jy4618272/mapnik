@@ -28,6 +28,7 @@
 #include <mapnik/feature_style_processor.hpp>
 #include <mapnik/font_engine_freetype.hpp>
 #include <mapnik/grid/grid.hpp>
+#include <mapnik/pixel_position.hpp>
 #include <mapnik/noncopyable.hpp>
 #include <mapnik/rule.hpp>              // for rule, symbolizers
 #include <mapnik/box2d.hpp>     // for box2d

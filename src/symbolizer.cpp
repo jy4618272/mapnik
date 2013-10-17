@@ -25,6 +25,7 @@
 #include <mapnik/attribute.hpp>
 #include <mapnik/feature.hpp>
 #include <mapnik/transform_processor.hpp>
+#include <mapnik/metawriter.hpp>
 
 namespace mapnik {
 

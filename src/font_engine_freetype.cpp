@@ -23,17 +23,12 @@
 // mapnik
 #include <mapnik/debug.hpp>
 #include <mapnik/font_engine_freetype.hpp>
-#include <mapnik/text_properties.hpp>
-#include <mapnik/graphics.hpp>
-#include <mapnik/value_types.hpp>
 
 #if defined(GRID_RENDERER)
-#include <mapnik/grid/grid.hpp>
 #endif
 
-#include <mapnik/text_path.hpp>
 #include <mapnik/pixel_position.hpp>
-#include <mapnik/font_util.hpp>
+#include <mapnik/text/face.hpp>
 #include <mapnik/util/fs.hpp>
 
 // boost
@@ -42,19 +37,19 @@
 #include <boost/make_shared.hpp>
 
 // stl
-#include <sstream>
 #include <algorithm>
 #include <stdexcept>
 
-// icu
-#include <unicode/ubidi.h>
-#include <unicode/ushape.h>
-#include <unicode/schriter.h>
-#include <unicode/uversion.h>
+// freetype2
+extern "C"
+{
+#include <ft2build.h>
+#include FT_FREETYPE_H
+#include FT_STROKER_H
+}
 
 namespace mapnik
 {
-
 
 freetype_engine::freetype_engine() :
     library_(NULL)
@@ -268,6 +263,7 @@ face_ptr freetype_engine::create_face(std::string const& family_name)
     return face_ptr();
 }
 
+
 stroker_ptr freetype_engine::create_stroker()
 {
     FT_Stroker s;
@@ -279,6 +275,7 @@ stroker_ptr freetype_engine::create_stroker()
     return stroker_ptr();
 }
 
+<<<<<<< HEAD
 void font_face_set::add(face_ptr face)
 {
     faces_.push_back(face);
@@ -303,14 +300,18 @@ glyph_ptr font_face_set::get_glyph(unsigned c) const
 }
 
 char_info font_face_set::character_dimensions(unsigned int c)
+=======
+template <typename T>
+face_ptr face_manager<T>::get_face(const std::string &name)
+>>>>>>> hb-merge
 {
-    //Check if char is already in cache
-    typedef std::map<unsigned, char_info>::const_iterator iterator_type;
-    iterator_type itr = dimension_cache_.find(c);
-    if (itr != dimension_cache_.end())
+    face_ptr_cache_type::iterator itr;
+    itr = face_ptr_cache_.find(name);
+    if (itr != face_ptr_cache_.end())
     {
         return itr->second;
     }
+<<<<<<< HEAD
 
     FT_Vector pen;
     FT_Error  error;
@@ -402,317 +403,65 @@ void font_face_set::set_pixel_sizes(unsigned size)
 void font_face_set::set_character_sizes(double size)
 {
     for ( face_ptr const& face : faces_)
+=======
+    else
+>>>>>>> hb-merge
     {
-        face->set_character_sizes(size);
+        face_ptr face = engine_.create_face(name);
+        if (face)
+        {
+            face_ptr_cache_.insert(make_pair(name,face));
+        }
+        return face;
     }
 }
 
-
 template <typename T>
-void composite_bitmap(T & pixmap,
-                      FT_Bitmap *bitmap,
-                      unsigned rgba,
-                      int x,
-                      int y,
-                      double opacity,
-                      composite_mode_e comp_op)
+face_set_ptr face_manager<T>::get_face_set(const std::string &name)
 {
-    int x_max=x+bitmap->width;
-    int y_max=y+bitmap->rows;
-    int i,p,j,q;
-
-    for (i=x,p=0;i<x_max;++i,++p)
+    face_set_ptr face_set = boost::make_shared<font_face_set>();
+    if (face_ptr face = get_face(name))
     {
-        for (j=y,q=0;j<y_max;++j,++q)
-        {
-            unsigned gray=bitmap->buffer[q*bitmap->width+p];
-            if (gray)
-            {
-                pixmap.composite_pixel(comp_op, i, j, rgba, gray, opacity);
-            }
-        }
+        face_set->add(face);
     }
+    return face_set;
 }
 
 template <typename T>
-void render_halo(T & pixmap,
-                 FT_Bitmap *bitmap,
-                 unsigned rgba,
-                 int x1,
-                 int y1,
-                 double halo_radius,
-                 double opacity,
-                 composite_mode_e comp_op)
+face_set_ptr face_manager<T>::get_face_set(const font_set &fset)
 {
-    int width = bitmap->width;
-    int height = bitmap->rows;
-    int x, y;
-    if (halo_radius < 1.0)
+    std::vector<std::string> const& names = fset.get_face_names();
+    face_set_ptr face_set = boost::make_shared<font_face_set>();
+    for (std::vector<std::string>::const_iterator name = names.begin(); name != names.end(); ++name)
     {
-        for (x=0; x < width; x++)
+        face_ptr face = get_face(*name);
+        if (face)
         {
-            for (y=0; y < height; y++)
-            {
-                int gray = bitmap->buffer[y*bitmap->width+x];
-                if (gray)
-                {
-                    pixmap.composite_pixel(comp_op, x+x1-1, y+y1-1, rgba, gray*halo_radius*halo_radius, opacity);
-                    pixmap.composite_pixel(comp_op, x+x1,   y+y1-1, rgba, gray*halo_radius, opacity);
-                    pixmap.composite_pixel(comp_op, x+x1+1, y+y1-1, rgba, gray*halo_radius*halo_radius, opacity);
-
-                    pixmap.composite_pixel(comp_op, x+x1-1, y+y1,   rgba, gray*halo_radius, opacity);
-                    pixmap.composite_pixel(comp_op, x+x1,   y+y1,   rgba, gray, opacity);
-                    pixmap.composite_pixel(comp_op, x+x1+1, y+y1,   rgba, gray*halo_radius, opacity);
-
-                    pixmap.composite_pixel(comp_op, x+x1-1, y+y1+1, rgba, gray*halo_radius*halo_radius, opacity);
-                    pixmap.composite_pixel(comp_op, x+x1,   y+y1+1, rgba, gray*halo_radius, opacity);
-                    pixmap.composite_pixel(comp_op, x+x1+1, y+y1+1, rgba, gray*halo_radius*halo_radius, opacity);
-                }
-            }
+            face_set->add(face);
         }
-    } else {
-        for (x=0; x < width; x++)
+#ifdef MAPNIK_LOG
+        else
         {
-            for (y=0; y < height; y++)
-            {
-                int gray = bitmap->buffer[y*bitmap->width+x];
-                if (gray)
-                {
-                    for (int n=-halo_radius; n <=halo_radius; ++n)
-                        for (int m=-halo_radius; m <= halo_radius; ++m)
-                            pixmap.composite_pixel(comp_op, x+x1+m, y+y1+n, rgba, gray, opacity);
-                }
-            }
+            MAPNIK_LOG_DEBUG(font_engine_freetype)
+                    << "Failed to find face '" << *name
+                    << "' in font set '" << fset.get_name() << "'\n";
         }
+#endif
     }
+    return face_set;
 }
 
 template <typename T>
-void render_halo_id(T & pixmap,
-                    FT_Bitmap *bitmap,
-                    mapnik::value_integer feature_id,
-                    int x1,
-                    int y1,
-                    int halo_radius)
+face_set_ptr face_manager<T>::get_face_set(const std::string &name, boost::optional<font_set> fset)
 {
-    int width = bitmap->width;
-    int height = bitmap->rows;
-    int x, y;
-    for (x=0; x < width; x++)
+    if (fset && fset->size() > 0)
     {
-        for (y=0; y < height; y++)
-        {
-            int gray = bitmap->buffer[y*bitmap->width+x];
-            if (gray)
-            {
-                for (int n=-halo_radius; n <=halo_radius; ++n)
-                    for (int m=-halo_radius; m <= halo_radius; ++m)
-                        pixmap.setPixel(x+x1+m,y+y1+n,feature_id);
-            }
-        }
+        return get_face_set(*fset);
     }
-}
-
-template <typename T>
-text_renderer<T>::text_renderer(pixmap_type & pixmap,
-                                face_manager<freetype_engine> & font_manager,
-                                halo_rasterizer_e rasterizer,
-                                composite_mode_e comp_op,
-                                double scale_factor)
-    : pixmap_(pixmap),
-      font_manager_(font_manager),
-      rasterizer_(rasterizer),
-      comp_op_(comp_op),
-      scale_factor_(scale_factor) {}
-
-template <typename T>
-box2d<double> text_renderer<T>::prepare_glyphs(text_path const& path)
-{
-    //clear glyphs
-    glyphs_.clear();
-
-    FT_Matrix matrix;
-    FT_Vector pen;
-    FT_Error  error;
-
-    FT_BBox bbox;
-    bbox.xMin = bbox.yMin = 32000;  // Initialize these so we can tell if we
-    bbox.xMax = bbox.yMax = -32000; // properly grew the bbox later
-
-    for (std::size_t i = 0; i < path.num_nodes(); ++i)
+    else
     {
-        char_info_ptr c;
-        double x, y, angle;
-
-        path.vertex(c, x, y, angle);
-
-        // TODO Enable when we have support for setting verbosity
-        // MAPNIK_LOG_DEBUG(font_engine_freetype) << "text_renderer: prepare_glyphs="
-        //                                        << c << "," << x << "," << y << "," << angle;
-
-        FT_BBox glyph_bbox;
-        FT_Glyph image;
-
-        pen.x = int(x * 64);
-        pen.y = int(y * 64);
-
-        face_set_ptr faces = font_manager_.get_face_set(c->format->face_name, c->format->fontset);
-        faces->set_character_sizes(c->format->text_size*scale_factor_);
-
-        glyph_ptr glyph = faces->get_glyph(unsigned(c->c));
-        FT_Face face = glyph->get_face()->get_face();
-
-        matrix.xx = (FT_Fixed)( std::cos( angle ) * 0x10000L );
-        matrix.xy = (FT_Fixed)(-std::sin( angle ) * 0x10000L );
-        matrix.yx = (FT_Fixed)( std::sin( angle ) * 0x10000L );
-        matrix.yy = (FT_Fixed)( std::cos( angle ) * 0x10000L );
-
-        FT_Set_Transform(face, &matrix, &pen);
-
-        error = FT_Load_Glyph(face, glyph->get_index(), FT_LOAD_NO_HINTING);
-        if ( error )
-            continue;
-
-        error = FT_Get_Glyph(face->glyph, &image);
-        if ( error )
-            continue;
-
-        FT_Glyph_Get_CBox(image,ft_glyph_bbox_pixels, &glyph_bbox);
-        if (glyph_bbox.xMin < bbox.xMin)
-            bbox.xMin = glyph_bbox.xMin;
-        if (glyph_bbox.yMin < bbox.yMin)
-            bbox.yMin = glyph_bbox.yMin;
-        if (glyph_bbox.xMax > bbox.xMax)
-            bbox.xMax = glyph_bbox.xMax;
-        if (glyph_bbox.yMax > bbox.yMax)
-            bbox.yMax = glyph_bbox.yMax;
-
-        // Check if we properly grew the bbox
-        if ( bbox.xMin > bbox.xMax )
-        {
-            bbox.xMin = 0;
-            bbox.yMin = 0;
-            bbox.xMax = 0;
-            bbox.yMax = 0;
-        }
-
-        // take ownership of the glyph
-        glyphs_.push_back(new glyph_t(image, c->format));
-    }
-
-    return box2d<double>(bbox.xMin, bbox.yMin, bbox.xMax, bbox.yMax);
-}
-
-template <typename T>
-void text_renderer<T>::render(pixel_position const& pos)
-{
-    FT_Error  error;
-    FT_Vector start;
-    int height = pixmap_.height();
-
-    start.x =  static_cast<FT_Pos>(pos.x * (1 << 6));
-    start.y =  static_cast<FT_Pos>((height - pos.y) * (1 << 6));
-
-    // now render transformed glyphs
-    typename glyphs_t::iterator itr;
-    for (itr = glyphs_.begin(); itr != glyphs_.end(); ++itr)
-    {
-        double halo_radius = itr->properties->halo_radius * scale_factor_;
-        //make sure we've got reasonable values.
-        if (halo_radius <= 0.0 || halo_radius > 1024.0) continue;
-        FT_Glyph g;
-        error = FT_Glyph_Copy(itr->image, &g);
-        if (!error)
-        {
-            FT_Glyph_Transform(g,0,&start);
-            if (rasterizer_ == HALO_RASTERIZER_FULL)
-            {
-                stroker_ptr stk = font_manager_.get_stroker();
-                stk->init(halo_radius);
-                FT_Glyph_Stroke(&g,stk->get(),1);
-                error = FT_Glyph_To_Bitmap( &g,FT_RENDER_MODE_NORMAL,0,1);
-                if (!error)
-                {
-                    FT_BitmapGlyph bit = (FT_BitmapGlyph)g;
-                    composite_bitmap(pixmap_,
-                                     &bit->bitmap,
-                                     itr->properties->halo_fill.rgba(),
-                                     bit->left,
-                                     height - bit->top,
-                                     itr->properties->text_opacity,
-                                     comp_op_);
-                }
-            }
-            else
-            {
-                error = FT_Glyph_To_Bitmap( &g,FT_RENDER_MODE_NORMAL,0,1);
-                if (!error)
-                {
-                    FT_BitmapGlyph bit = (FT_BitmapGlyph)g;
-                    render_halo(pixmap_,
-                                &bit->bitmap,
-                                itr->properties->halo_fill.rgba(),
-                                bit->left,
-                                height - bit->top,
-                                halo_radius,
-                                itr->properties->text_opacity,
-                                comp_op_);
-                }
-            }
-        }
-        FT_Done_Glyph(g);
-    }
-    //render actual text
-    for (itr = glyphs_.begin(); itr != glyphs_.end(); ++itr)
-    {
-
-        FT_Glyph_Transform(itr->image,0,&start);
-
-        error = FT_Glyph_To_Bitmap( &(itr->image),FT_RENDER_MODE_NORMAL,0,1);
-        if ( ! error )
-        {
-
-            FT_BitmapGlyph bit = (FT_BitmapGlyph)itr->image;
-            composite_bitmap(pixmap_,
-                             &bit->bitmap,
-                             itr->properties->fill.rgba(),
-                             bit->left,
-                             height - bit->top,
-                             itr->properties->text_opacity,
-                             comp_op_
-                );
-        }
-    }
-}
-
+        return get_face_set(name);
 #if defined(GRID_RENDERER)
-template <typename T>
-void text_renderer<T>::render_id(mapnik::value_integer feature_id,
-                                 pixel_position const& pos)
-{
-    FT_Error  error;
-    FT_Vector start;
-    unsigned height = pixmap_.height();
-
-    start.x =  static_cast<FT_Pos>(pos.x * (1 << 6));
-    start.y =  static_cast<FT_Pos>((height - pos.y) * (1 << 6));
-
-    // now render transformed glyphs
-    typename glyphs_t::iterator itr;
-    for (itr = glyphs_.begin(); itr != glyphs_.end(); ++itr)
-    {
-        FT_Glyph_Transform(itr->image,0,&start);
-        error = FT_Glyph_To_Bitmap( &(itr->image),FT_RENDER_MODE_NORMAL,0,1);
-        if ( ! error )
-        {
-            FT_BitmapGlyph bit = (FT_BitmapGlyph)itr->image;
-            render_halo_id(pixmap_,
-                           &bit->bitmap,
-                           feature_id,
-                           bit->left,
-                           height - bit->top,
-                           static_cast<int>(itr->properties->halo_radius));
-        }
     }
 }
 #endif
@@ -723,20 +472,8 @@ std::mutex freetype_engine::mutex_;
 std::map<std::string,std::pair<int,std::string> > freetype_engine::name2file_;
 std::map<std::string,std::string> freetype_engine::memory_fonts_;
 
-template text_renderer<image_32>::text_renderer(image_32&,
-                                                face_manager<freetype_engine>&,
-                                                halo_rasterizer_e,
-                                                composite_mode_e,
-                                                double);
-template box2d<double>text_renderer<image_32>::prepare_glyphs(text_path const&);
-template void text_renderer<image_32>::render(pixel_position const&);
+template class face_manager<freetype_engine>;
+
 #if defined(GRID_RENDERER)
-template void text_renderer<grid>::render_id(mapnik::value_integer,
-                                             pixel_position const&);
-template text_renderer<grid>::text_renderer(grid&,
-                                            face_manager<freetype_engine>&,
-                                            halo_rasterizer_e,
-                                            composite_mode_e, double);
-template box2d<double>text_renderer<grid>::prepare_glyphs(text_path const& );
 #endif
 }

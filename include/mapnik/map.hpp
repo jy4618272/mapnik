@@ -31,6 +31,7 @@
 #include <mapnik/datasource.hpp>  // for featureset_ptr
 #include <mapnik/layer.hpp>
 #include <mapnik/params.hpp>
+#include <mapnik/ctrans.hpp>
 #include <mapnik/well_known_srs.hpp>
 #include <mapnik/image_compositing.hpp>
 

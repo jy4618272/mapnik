@@ -57,7 +57,7 @@ regex = 'boost_regex%s' % env['BOOST_APPEND']
 system = 'boost_system%s' % env['BOOST_APPEND']
 
 # clear out and re-set libs for this env
-lib_env['LIBS'] = ['freetype',env['ICU_LIB_NAME'],filesystem,system,regex]
+lib_env['LIBS'] = ['freetype',env['ICU_LIB_NAME'],filesystem,system,regex,'harfbuzz', 'harfbuzz-icu']
 
 if '-DMAPNIK_USE_PROJ4' in env['CPPDEFINES']:
    lib_env['LIBS'].append('proj')
@@ -165,7 +165,6 @@ source = Split(
     parse_transform.cpp
     palette.cpp
     path_expression_grammar.cpp
-    placement_finder.cpp
     plugin.cpp
     point_symbolizer.cpp
     polygon_pattern_symbolizer.cpp
@@ -183,7 +182,6 @@ source = Split(
     memory_datasource.cpp
     stroke.cpp
     symbolizer.cpp
-    symbolizer_helpers.cpp
     unicode.cpp
     markers_symbolizer.cpp
     raster_colorizer.cpp
@@ -192,33 +190,41 @@ source = Split(
     wkt/wkt_generator.cpp
     mapped_memory_cache.cpp
     marker_cache.cpp
+    xml_tree.cpp
+    config_error.cpp
+    color_factory.cpp
+    vertex_cache.cpp
+    warp.cpp
     svg/svg_parser.cpp
     svg/svg_path_parser.cpp
     svg/svg_points_parser.cpp
     svg/svg_transform_parser.cpp
-    warp.cpp
     json/geometry_grammar.cpp
     json/geometry_parser.cpp
     json/feature_grammar.cpp
     json/feature_parser.cpp
     json/feature_collection_parser.cpp
     json/geojson_generator.cpp
-    processed_text.cpp
-    formatting/base.cpp
-    formatting/expression.cpp
-    formatting/list.cpp
-    formatting/text.cpp
-    formatting/format.cpp
-    formatting/registry.cpp
-    text_placements/registry.cpp
-    text_placements/base.cpp
-    text_placements/dummy.cpp
-    text_placements/list.cpp
-    text_placements/simple.cpp
-    text_properties.cpp
-    xml_tree.cpp
-    config_error.cpp
-    color_factory.cpp
+    text/placements/registry.cpp
+    text/placements/base.cpp
+    text/placements/dummy.cpp
+    text/placements/list.cpp
+    text/placements/simple.cpp
+    text/layout.cpp
+    text/layout_shape_hb.cpp
+    text/itemizer.cpp
+    text/scrptrun.cpp
+    text/face.cpp
+    text/placement_finder.cpp
+    text/renderer.cpp
+    text/symbolizer_helpers.cpp
+    text/text_properties.cpp
+    text/formatting/base.cpp
+    text/formatting/expression.cpp
+    text/formatting/list.cpp
+    text/formatting/text.cpp
+    text/formatting/format.cpp
+    text/formatting/registry.cpp
     """
     )
 

@@ -30,6 +30,7 @@
 #include <mapnik/noncopyable.hpp>       // for noncopyable
 #include <mapnik/rule.hpp>              // for rule, symbolizers
 #include <mapnik/box2d.hpp>     // for box2d
+#include <mapnik/pixel_position.hpp>
 #include <mapnik/color.hpp>     // for color
 #include <mapnik/ctrans.hpp>    // for CoordTransform
 #include <mapnik/image_compositing.hpp>  // for composite_mode_e
