@@ -104,7 +104,7 @@ void text_itemizer::itemize_direction(unsigned start, unsigned end)
         UBiDiDirection direction = ubidi_getDirection(bidi);
         if (direction != UBIDI_MIXED)
         {
-            direction_runs_.push_back(direction_run_t(direction, start, end));
+            direction_runs_.emplace_back(direction, start, end);
         }
         else
         {
@@ -118,7 +118,7 @@ void text_itemizer::itemize_direction(unsigned start, unsigned end)
                     int32_t run_start;
                     direction = ubidi_getVisualRun(bidi, i, &run_start, &length);
                     run_start += start; //Add offset to compensate offset in setPara
-                    direction_runs_.push_back(direction_run_t(direction, run_start, run_start+length));
+                    direction_runs_.emplace_back(direction, run_start, run_start+length);
                 }
             }
         }
