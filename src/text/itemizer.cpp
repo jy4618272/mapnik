@@ -25,13 +25,13 @@
 #include <mapnik/debug.hpp>
 
 // stl
-#include <iostream>
 #include <algorithm>
 
 namespace mapnik
 {
 
-text_itemizer::text_itemizer() : text_(), format_runs_(), direction_runs_(), script_runs_()
+text_itemizer::text_itemizer()
+    : text_(), format_runs_(), direction_runs_(), script_runs_()
 {
     forced_line_breaks_.push_back(0);
 }
@@ -40,7 +40,7 @@ void text_itemizer::add_text(mapnik::value_unicode_string str, char_properties_p
 {
     unsigned start = text_.length();
     text_ += str;
-    format_runs_.push_back(format_run_t(format, start, text_.length()));
+    format_runs_.emplace_back(format, start, text_.length());
 
     while ((start = text_.indexOf('\n', start)+1) > 0)
     {
@@ -102,16 +102,17 @@ void text_itemizer::itemize_direction(unsigned start, unsigned end)
     if (U_SUCCESS(error))
     {
         UBiDiDirection direction = ubidi_getDirection(bidi);
-        if(direction != UBIDI_MIXED)
+        if (direction != UBIDI_MIXED)
         {
             direction_runs_.push_back(direction_run_t(direction, start, end));
-        } else
+        }
+        else
         {
             // mixed-directional
             int32_t count = ubidi_countRuns(bidi, &error);
             if(U_SUCCESS(error))
             {
-                for(int i=0; i<count; i++)
+                for(int i=0; i<count; ++i)
                 {
                     int32_t length;
                     int32_t run_start;
@@ -121,7 +122,9 @@ void text_itemizer::itemize_direction(unsigned start, unsigned end)
                 }
             }
         }
-    } else{
+    }
+    else
+    {
         MAPNIK_LOG_ERROR(text_itemizer) << "ICU error: " << u_errorName(error) << "\n"; //TODO: Exception
     }
     ubidi_close(bidi);
@@ -134,7 +137,7 @@ void text_itemizer::itemize_script()
     ScriptRun runs(text_.getBuffer(), text_.length());
     while (runs.next())
     {
-        script_runs_.push_back(script_run_t(runs.getScriptCode(), runs.getScriptStart(), runs.getScriptEnd()));
+        script_runs_.emplace_back(runs.getScriptCode(), runs.getScriptStart(), runs.getScriptEnd());
     }
 }
 
@@ -142,7 +145,7 @@ template <typename T>
 typename T::const_iterator text_itemizer::find_run(T const& list, unsigned position)
 {
     typename T::const_iterator itr = list.begin(), end = list.end();
-    for (;itr!=end; itr++)
+    for ( ;itr!=end; ++itr)
     {
         // end is the first character not included in text range!
         if (itr->start <= position && itr->end > position) return itr;
@@ -161,11 +164,10 @@ void text_itemizer::create_item_list()
      * Glyphs within a single run are reversed by the shaper.
      */
     output_.clear();
-    direction_run_list::const_iterator dir_itr = direction_runs_.begin(), dir_end = direction_runs_.end();
-    for (; dir_itr != dir_end; dir_itr++)
+    for (auto const& dir_run : direction_runs_)
     {
-        unsigned position = dir_itr->start;
-        unsigned end = dir_itr->end;
+        unsigned position = dir_run.start;
+        unsigned end = dir_run.end;
         std::list<text_item>::iterator rtl_insertion_point = output_.end();
         // Find first script and format run
         format_run_list::const_iterator format_itr = find_run(format_runs_, position);
@@ -180,16 +182,18 @@ void text_itemizer::create_item_list()
             item.end = position;
             item.format = format_itr->data;
             item.script = script_itr->data;
-            item.rtl = dir_itr->data;
-            if (dir_itr->data == UBIDI_LTR)
+            item.rtl = dir_run.data;
+
+            if (dir_run.data == UBIDI_LTR)
             {
                 output_.push_back(item);
-            } else
+            }
+            else
             {
                 rtl_insertion_point = output_.insert(rtl_insertion_point, item);
             }
-            if (script_itr->end == position) script_itr++;
-            if (format_itr->end == position) format_itr++;
+            if (script_itr->end == position) ++script_itr;
+            if (format_itr->end == position) ++format_itr;
         }
     }
 }

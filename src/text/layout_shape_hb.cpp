@@ -66,9 +66,9 @@ void text_layout::shape_text(text_line_ptr line)
             hb_buffer_add_utf16(buffer, text.getBuffer(), text.length(), itr->start, itr->end - itr->start);
             hb_buffer_set_direction(buffer, (itr->rtl == UBIDI_RTL)?HB_DIRECTION_RTL:HB_DIRECTION_LTR);
             hb_buffer_set_script(buffer, hb_icu_script_to_script(itr->script));
-        #if 0
+#if 0
             hb_buffer_set_language(buffer, hb_language_from_string (language, -1));
-        #endif
+#endif
 
             face_ptr face = *face_itr;
 
