@@ -35,7 +35,6 @@
 namespace mapnik
 {
 
-
 void text_layout::shape_text(text_line_ptr line)
 {
     unsigned start = line->first_char();
@@ -45,11 +44,13 @@ void text_layout::shape_text(text_line_ptr line)
     size_t length = end - start;
     if (!length) return;
 
-    hb_buffer_t *buffer(hb_buffer_create());
-    hb_buffer_set_unicode_funcs(buffer, hb_icu_get_unicode_funcs());
+    auto hb_buffer_deleter = [](hb_buffer_t * buffer) { hb_buffer_destroy(buffer);};
+    const std::unique_ptr<hb_buffer_t, decltype(hb_buffer_deleter)> buffer(hb_buffer_create(),hb_buffer_deleter);
+
+    hb_buffer_set_unicode_funcs(buffer.get(), hb_icu_get_unicode_funcs());
 
     line->reserve(length); //Preallocate memory
-    hb_buffer_pre_allocate(buffer, length);
+    hb_buffer_pre_allocate(buffer.get(), length);
 
     std::list<text_item> const& list = itemizer_.itemize(start, end);
     std::list<text_item>::const_iterator itr = list.begin(), list_end = list.end();
@@ -62,23 +63,23 @@ void text_layout::shape_text(text_line_ptr line)
         font_face_set::iterator face_itr = face_set->begin(), face_end = face_set->end();
         for (; face_itr != face_end; face_itr++)
         {
-            hb_buffer_clear_contents(buffer);
-            hb_buffer_add_utf16(buffer, text.getBuffer(), text.length(), itr->start, itr->end - itr->start);
-            hb_buffer_set_direction(buffer, (itr->rtl == UBIDI_RTL)?HB_DIRECTION_RTL:HB_DIRECTION_LTR);
-            hb_buffer_set_script(buffer, hb_icu_script_to_script(itr->script));
+            hb_buffer_clear_contents(buffer.get());
+            hb_buffer_add_utf16(buffer.get(), text.getBuffer(), text.length(), itr->start, itr->end - itr->start);
+            hb_buffer_set_direction(buffer.get(), (itr->rtl == UBIDI_RTL)?HB_DIRECTION_RTL:HB_DIRECTION_LTR);
+            hb_buffer_set_script(buffer.get(), hb_icu_script_to_script(itr->script));
 #if 0
-            hb_buffer_set_language(buffer, hb_language_from_string (language, -1));
+            hb_buffer_set_language(buffer.get(), hb_language_from_string (language, -1));
 #endif
 
             face_ptr face = *face_itr;
 
             hb_font_t *font(hb_ft_font_create(face->get_face(), NULL));
-            hb_shape(font, buffer, 0 /*features*/, 0 /*num_features*/);
+            hb_shape(font, buffer.get(), 0 /*features*/, 0 /*num_features*/);
             hb_font_destroy(font);
-            unsigned num_glyphs = hb_buffer_get_length(buffer);
+            unsigned num_glyphs = hb_buffer_get_length(buffer.get());
 
-            hb_glyph_info_t *glyphs = hb_buffer_get_glyph_infos(buffer, NULL);
-            hb_glyph_position_t *positions = hb_buffer_get_glyph_positions(buffer, NULL);
+            hb_glyph_info_t *glyphs = hb_buffer_get_glyph_infos(buffer.get(), NULL);
+            hb_glyph_position_t *positions = hb_buffer_get_glyph_positions(buffer.get(), NULL);
 
             bool font_has_all_glyphs = true;
             /* Check if all glyphs are valid. */
@@ -96,7 +97,7 @@ void text_layout::shape_text(text_line_ptr line)
                 continue;
             }
 
-            for (unsigned i=0; i<num_glyphs; i++)
+            for (unsigned i=0; i<num_glyphs; ++i)
             {
                 glyph_info tmp;
                 tmp.char_index = glyphs[i].cluster;
@@ -115,8 +116,6 @@ void text_layout::shape_text(text_line_ptr line)
             break; //When we reach this point the current font had all glyphs.
         }
     }
-
-    hb_buffer_destroy(buffer);
 }
 
 } //ns mapnik
