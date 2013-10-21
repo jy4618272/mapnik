@@ -35,6 +35,13 @@ sizes_few_square = [(800, 800), (600, 600), (400, 400), (200, 200)]
 
 default_text_box = mapnik.Box2d(-0.05, -0.01, 0.95, 0.01)
 
+merc_z1_bboxes = {
+  '0,0':mapnik.Box2d(-20037508.342,0,0,20037508.342), # upper left
+  '1,0':mapnik.Box2d(0,0,20037508.342,20037508.342), # upper right
+  '0,1':mapnik.Box2d(-20037508.342,-20037508.342,0,0), # lower left
+  '1,1':mapnik.Box2d(0,-20037508.342,20037508.342,0) # lower right
+}
+
 
 text_tests = [
     {'name': "list", 'sizes': sizes_many_in_big_range, 'bbox': default_text_box},
@@ -104,34 +111,80 @@ tiff_tests = [
     },
     {'name': "tiff-edge-alignment-gdal2", 'sizes': [(256,256),(255,257)], 'bbox': mapnik.Box2d(-13267022.12540147,4598451.621636203,-13247454.246160466,4618019.500877209)
     },
+    
+    {'name': "tiff-reprojection-1", 'sizes': [(250,250)]},
+    # disabled since fixing is not actionable: https://github.com/mapnik/mapnik/issues/1913
+    # {'name': "tiff-reprojection-2", 'sizes': [(250,250)]},
+    
     # https://github.com/mapnik/mapnik/issues/1520
     # commented because these are not critical failures
     #{'name': "tiff-alpha-raster", 'sizes': [(600,400)]},
     #{'name': "tiff-alpha-broken-assoc-alpha-raster", 'sizes': [(600,400)]},
     #{'name': "tiff-nodata-edge-raster", 'sizes': [(600,400)]},
     #{'name': "tiff-opaque-edge-raster", 'sizes': [(256,256)]},
+    
+    {'name': "tiff_colortable", 'sizes': [(256,256)]},
+    {'name': "tiff_colortable_custom_nodata", 'sizes': [(256,256)]},
 ]
 
-other_tests = [
+marker_tests = [
     {'name': "marker-svg-opacity"},
+    {'name': "marker-svg-opacity2"},
+    {'name': "marker-svg-empty-g-element"},
     {'name': "marker-multi-policy", 'sizes': [(600,400)]},
     {'name': "marker-on-line", 'sizes': [(600,400)], 'bbox': mapnik.Box2d(-10, 0, 15, 20)},
+    {'name': "marker-on-line-and-line-placement", 'sizes': [(600,400)], 'bbox': mapnik.Box2d(-10, 0, 15, 20)},
     {'name': "marker-on-line-spacing-eq-width", 'sizes': [(600,400)]},
     {'name': "marker-on-line-spacing-eq-width-overlap", 'sizes': [(600,400)]},
     {'name': "marker_line_placement_on_points"},
     {'name': "marker-with-background-image", 'sizes': [(600,400), (400,600), (257,256)]},
     {'name': "marker-with-background-image-and-hsla-transform", 'sizes': [(600,400), (400,600), (257,256)]},
     {'name': "marker-on-hex-grid", 'sizes': [(600,400), (400,600), (257,256)]},
+    {'name': "marker-path-expression"}
+]
+
+other_tests = [
     {'name': "whole-centroid", 'sizes': [(600,400)], 'bbox':  mapnik.Box2d(736908, 4390316, 2060771, 5942346)},
+    {'name': "line-pattern-symbolizer", 'sizes': [(900, 250)], 'bbox': mapnik.Box2d(-5.192, 50.189, -5.174, 50.195)},
+    {'name': "shield-on-polygon", 'sizes': [(600,400)]},
+    {'name': "shield-on-line-spacing-eq-width", 'sizes': [(600,400)]},
+    {'name': "geometry-transform-translate", 'sizes': [(200,200)]},
+    {'name': "gdal-filter-factor", 'sizes': [(600,400)]},
+    {'name': "road-casings-grouped-rendering", 'sizes': [(600,600)], 'bbox': mapnik.Box2d(1477001.12245,6890242.37746,1480004.49012,6892244.62256)
+    },
+    {'name': "road-casings-non-grouped-rendering", 'sizes': [(600,600)], 'bbox': mapnik.Box2d(1477001.12245,6890242.37746,1480004.49012,6892244.62256)
+    },
+    {'name': "style-level-compositing-tiled-0,0", 'sizes': [(512,512)], 'bbox': merc_z1_bboxes['0,0']},
+    {'name': "style-level-compositing-tiled-1,0", 'sizes': [(512,512)], 'bbox': merc_z1_bboxes['1,0']},
+    {'name': "style-level-compositing-tiled-0,1", 'sizes': [(512,512)], 'bbox': merc_z1_bboxes['0,1']},
+    {'name': "style-level-compositing-tiled-1,1", 'sizes': [(512,512)], 'bbox': merc_z1_bboxes['1,1']},
+    {'name': "map-background-image-compositing", 'sizes': [(512,512)]},
+    {'name': "building-symbolizer-opacity", 'sizes': [(512,512)]},
+    {'name': "line-pattern-symbolizer-opacity", 'sizes': [(512,512)]},
+    {'name': "dst-over-compositing", 'sizes': [(512,512)]},
+    {'name': "vrt_colortable", 'sizes': [(256,256)]},
+    {'name': "raster_colorizer", 'sizes': [(512,512)]},
+    {'name': "raster_symbolizer", 'sizes': [(512,512)]},
+    {'name': "raster-color-to-alpha1", 'sizes': [(512,512)]},
+    {'name': "raster-color-to-alpha2", 'sizes': [(512,512)]},
+    {'name': "raster-color-to-alpha3", 'sizes': [(512,512)]},
+    {'name': "raster-color-to-alpha4", 'sizes': [(512,512)]},
+    {'name': "raster-color-to-alpha5", 'sizes': [(512,512)]},
+    {'name': "colorize-alpha1", 'sizes': [(512,512)]},
+    {'name': "colorize-alpha2", 'sizes': [(512,512)]},
+    {'name': "colorize-alpha3", 'sizes': [(512,512)]},
+    {'name': "image-filters-galore", 'sizes': [(512,512)]},
+    {'name': "image-filters-multi-blur", 'sizes': [(512,512)]}
 ]
 
 test_names = {
     '!text': text_tests,
     '!tiff': tiff_tests,
+    '!marker': marker_tests,
     '!other': other_tests,
 }
 
-files = text_tests + tiff_tests + other_tests
+files = text_tests + tiff_tests + marker_tests + other_tests
 
 def find_file(filename):
     if filename.startswith('styles/'):
@@ -166,7 +219,7 @@ if __name__ == "__main__":
     parser.add_argument('-o', '--output-dir', action='store',
         default=visual_output_dir, help='output directory (default: %(default)s)', metavar='DIR')
     parser.add_argument('file', nargs='*', action='store',
-        help='only render these files (select groups of tests with "!text", "!tiff", "!other")')
+        help='only render these files (select groups of tests with "'+ '", "'.join(test_names.keys())+'")')
     args = parser.parse_args()
     
     reporting = Reporting(quiet=args.quiet)
