@@ -34,7 +34,7 @@ namespace non_copyable_
       ~noncopyable() {}
    private:
       noncopyable( const noncopyable& );
-      const noncopyable& operator=( const noncopyable& );
+      noncopyable& operator=( const noncopyable& );
   };
 }
 
