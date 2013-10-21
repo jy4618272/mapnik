@@ -27,7 +27,6 @@
 #include <mapnik/text/placements/base.hpp>
 
 // Boost
-#include <boost/foreach.hpp>
 #include <boost/algorithm/string.hpp>
 
 // STL
@@ -108,7 +107,7 @@ void metawriter_json_stream::write_properties(Feature const& feature, metawriter
         "\n  \"properties\": {";
 
     int i = 0;
-    BOOST_FOREACH(std::string const& p, properties)
+    for (std::string const& p : properties)
     {
         if (feature.has_key(p))
         {

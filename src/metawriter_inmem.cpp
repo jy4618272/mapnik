@@ -41,12 +41,11 @@ using mapnik::metawriter_properties;
 map<string,value> intersect_properties(Feature const& feature, metawriter_properties const& properties) {
 
     map<string,value> nprops;
-    BOOST_FOREACH(string p, properties)
+    for (string const& p :  properties)
     {
         if (feature.has_key(p))
             nprops.insert(std::make_pair(p,feature.get(p)));
     }
-
     return nprops;
 }} // end anonymous namespace
 

@@ -25,9 +25,6 @@
 #include <mapnik/text/symbolizer_helpers.hpp>
 #include <mapnik/text/renderer.hpp>
 
-// boost
-#include <boost/foreach.hpp>
-
 namespace mapnik {
 
 template <typename T>
@@ -46,9 +43,9 @@ void grid_renderer<T>::process(text_symbolizer const& sym,
 
     placements_list const& placements = helper.get();
     if (!placements.size()) return;
-    BOOST_FOREACH(glyph_positions_ptr glyphs, placements)
+    for (glyph_positions_ptr glyphs : placements)
     {
-        ren.render(glyphs, feature.id());
+        ren.render(*glyphs, feature.id());
     }
     pixmap_.add_feature(feature);
 }
@@ -58,4 +55,3 @@ template void grid_renderer<grid>::process(text_symbolizer const&,
                                            proj_transform const&);
 
 }
-

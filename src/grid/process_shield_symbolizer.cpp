@@ -29,9 +29,6 @@
 // agg
 #include "agg_trans_affine.h"
 
-//boost
-#include <boost/foreach.hpp>
-
 namespace mapnik {
 
 template <typename T>
@@ -50,7 +47,7 @@ void  grid_renderer<T>::process(shield_symbolizer const& sym,
 
     placements_list const& placements = helper.get();
     if (!placements.size()) return;
-    BOOST_FOREACH(glyph_positions_ptr glyphs, placements)
+    for (glyph_positions_ptr glyphs : placements)
     {
         if (glyphs->marker()->marker)
             render_marker(feature, pixmap_.get_resolution(),
@@ -58,7 +55,7 @@ void  grid_renderer<T>::process(shield_symbolizer const& sym,
                           *(glyphs->marker()->marker),
                           glyphs->marker()->transform,
                           sym.get_opacity(), sym.comp_op());
-        ren.render(glyphs, feature.id());
+        ren.render(*glyphs, feature.id());
     }
     pixmap_.add_feature(feature);
 }

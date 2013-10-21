@@ -28,62 +28,34 @@
 #include <mapnik/font_engine_freetype.hpp>
 #include <mapnik/text/face.hpp>
 
-// boost
-
-
-// freetype2
-extern "C"
-{
-#include <ft2build.h>
-#include FT_FREETYPE_H
-#include FT_STROKER_H
-}
-
 namespace mapnik
 {
-
-struct glyph_t : mapnik::noncopyable
-{
-    FT_Glyph image;
-    char_properties_ptr properties;
-
-    glyph_t(FT_Glyph image_, char_properties_ptr properties_)
-        : image(image_), properties(properties_) {}
-
-    ~glyph_t () { FT_Done_Glyph(image);}
-
-};
 
 text_renderer::text_renderer (halo_rasterizer_e rasterizer, composite_mode_e comp_op, double scale_factor, stroker_ptr stroker)
     : rasterizer_(rasterizer),
       comp_op_(comp_op),
       scale_factor_(scale_factor),
-      glyphs_(std::make_shared<glyph_vector>()),
+      glyphs_(),
       stroker_(stroker)
 {}
 
-
-void text_renderer::prepare_glyphs(glyph_positions_ptr pos)
+void text_renderer::prepare_glyphs(glyph_positions const& positions)
 {
-    //clear glyphs
-    glyphs_->clear();
-
     FT_Matrix matrix;
     FT_Vector pen;
     FT_Error  error;
 
-    glyph_positions::const_iterator itr = pos->begin(), end = pos->end();
-    for (; itr != end; itr++)
+    for (auto const& glyph_pos : positions)
     {
-        glyph_info const& glyph = *(itr->glyph);
+        glyph_info const& glyph = *(glyph_pos.glyph);
         glyph.face->set_character_sizes(glyph.format->text_size * scale_factor_); //TODO: Optimize this?
 
-        matrix.xx = (FT_Fixed)( itr->rot.cos * 0x10000L);
-        matrix.xy = (FT_Fixed)(-itr->rot.sin * 0x10000L);
-        matrix.yx = (FT_Fixed)( itr->rot.sin * 0x10000L);
-        matrix.yy = (FT_Fixed)( itr->rot.cos * 0x10000L);
+        matrix.xx = (FT_Fixed)( glyph_pos.rot.cos * 0x10000L);
+        matrix.xy = (FT_Fixed)(-glyph_pos.rot.sin * 0x10000L);
+        matrix.yx = (FT_Fixed)( glyph_pos.rot.sin * 0x10000L);
+        matrix.yy = (FT_Fixed)( glyph_pos.rot.cos * 0x10000L);
 
-        pixel_position pos = itr->pos + glyph.offset.rotate(itr->rot);
+        pixel_position pos = glyph_pos.pos + glyph.offset.rotate(glyph_pos.rot);
         pen.x = int(pos.x * 64);
         pen.y = int(pos.y * 64);
 
@@ -97,8 +69,7 @@ void text_renderer::prepare_glyphs(glyph_positions_ptr pos)
         error = FT_Get_Glyph(face->glyph, &image);
         if (error) continue;
 
-        // take ownership of the glyph
-        glyphs_->push_back(new glyph_t(image, glyph.format));
+        glyphs_.emplace_back(image, glyph.format);
     }
 }
 
@@ -129,40 +100,37 @@ agg_text_renderer<T>::agg_text_renderer (pixmap_type & pixmap,
                                          double scale_factor,
                                          stroker_ptr stroker)
     : text_renderer(rasterizer, comp_op, scale_factor, stroker), pixmap_(pixmap)
-{
-
-}
+{}
 
 template <typename T>
-void agg_text_renderer<T>::render(glyph_positions_ptr pos)
+void agg_text_renderer<T>::render(glyph_positions const& pos)
 {
-    glyphs_->clear();
+    glyphs_.clear();
     prepare_glyphs(pos);
     FT_Error  error;
     FT_Vector start;
     int height = pixmap_.height();
-    pixel_position const& base_point = pos->get_base_point();
+    pixel_position const& base_point = pos.get_base_point();
 
     start.x =  static_cast<FT_Pos>(base_point.x * (1 << 6));
     start.y =  static_cast<FT_Pos>((height - base_point.y) * (1 << 6));
 
     //render halo
-    typename glyph_vector::iterator itr, end = glyphs_->end();
     double halo_radius = 0;
     char_properties_ptr format;
-    for (itr = glyphs_->begin(); itr != end; ++itr)
+    for (auto const& glyph : glyphs_)
     {
-        if (itr->properties)
+        if (glyph.properties)
         {
-            format = itr->properties;
-            /* Settings have changed. */
-            halo_radius = itr->properties->halo_radius * scale_factor_;
+            format = glyph.properties;
+            // Settings have changed.
+            halo_radius = glyph.properties->halo_radius * scale_factor_;
             //make sure we've got reasonable values.
             if (halo_radius <= 0.0 || halo_radius > 1024.0) break;
             stroker_->init(halo_radius);
         }
         FT_Glyph g;
-        error = FT_Glyph_Copy(itr->image, &g);
+        error = FT_Glyph_Copy(glyph.image, &g);
         if (!error)
         {
             FT_Glyph_Transform(g,0,&start);
@@ -172,7 +140,7 @@ void agg_text_renderer<T>::render(glyph_positions_ptr pos)
                 error = FT_Glyph_To_Bitmap(&g, FT_RENDER_MODE_NORMAL, 0, 1);
                 if (!error)
                 {
-                    FT_BitmapGlyph bit = (FT_BitmapGlyph)g;
+                    FT_BitmapGlyph bit = reinterpret_cast<FT_BitmapGlyph>(g);
                     composite_bitmap(pixmap_,
                                      &bit->bitmap,
                                      format->halo_fill.rgba(),
@@ -187,7 +155,7 @@ void agg_text_renderer<T>::render(glyph_positions_ptr pos)
                 error = FT_Glyph_To_Bitmap(&g, FT_RENDER_MODE_NORMAL, 0, 1);
                 if (!error)
                 {
-                    FT_BitmapGlyph bit = (FT_BitmapGlyph)g;
+                    FT_BitmapGlyph bit = reinterpret_cast<FT_BitmapGlyph>(g);
                     render_halo(&bit->bitmap,
                                 format->halo_fill.rgba(),
                                 bit->left,
@@ -203,19 +171,19 @@ void agg_text_renderer<T>::render(glyph_positions_ptr pos)
     }
 
     //render actual text
-    for (itr = glyphs_->begin(); itr != end; ++itr)
+    for (auto & glyph : glyphs_)
     {
-        if (itr->properties)
+        if (glyph.properties)
         {
-            format = itr->properties;
+            format = glyph.properties;
         }
-        FT_Glyph_Transform(itr->image, 0, &start);
+        FT_Glyph_Transform(glyph.image, 0, &start);
 
-        error = FT_Glyph_To_Bitmap( &(itr->image),FT_RENDER_MODE_NORMAL,0,1);
+        error = FT_Glyph_To_Bitmap(&glyph.image ,FT_RENDER_MODE_NORMAL,0,1);
         if (!error)
         {
 
-            FT_BitmapGlyph bit = (FT_BitmapGlyph)itr->image;
+            FT_BitmapGlyph bit = reinterpret_cast<FT_BitmapGlyph>(glyph.image);
             composite_bitmap(pixmap_, &bit->bitmap, format->fill.rgba(),
                              bit->left,
                              height - bit->top,
@@ -228,32 +196,31 @@ void agg_text_renderer<T>::render(glyph_positions_ptr pos)
 
 
 template <typename T>
-void grid_text_renderer<T>::render(glyph_positions_ptr pos, value_integer feature_id)
+void grid_text_renderer<T>::render(glyph_positions const& pos, value_integer feature_id)
 {
-    glyphs_->clear();
+    glyphs_.clear();
     prepare_glyphs(pos);
     FT_Error  error;
     FT_Vector start;
     unsigned height = pixmap_.height();
-    pixel_position const& base_point = pos->get_base_point();
+    pixel_position const& base_point = pos.get_base_point();
     start.x =  static_cast<FT_Pos>(base_point.x * (1 << 6));
     start.y =  static_cast<FT_Pos>((height - base_point.y) * (1 << 6));
 
     // now render transformed glyphs
-    typename glyph_vector::iterator itr, end = glyphs_->end();
     double halo_radius = 0.;
-    for (itr = glyphs_->begin(); itr != end; ++itr)
+    for (auto & glyph : glyphs_)
     {
-        if (itr->properties)
+        if (glyph.properties)
         {
-            halo_radius = itr->properties->halo_radius * scale_factor_;
+            halo_radius = glyph.properties->halo_radius * scale_factor_;
         }
-        FT_Glyph_Transform(itr->image, 0, &start);
-        error = FT_Glyph_To_Bitmap(&(itr->image), FT_RENDER_MODE_NORMAL, 0, 1);
+        FT_Glyph_Transform(glyph.image, 0, &start);
+        error = FT_Glyph_To_Bitmap(&glyph.image, FT_RENDER_MODE_NORMAL, 0, 1);
         if (!error)
         {
 
-            FT_BitmapGlyph bit = (FT_BitmapGlyph)itr->image;
+            FT_BitmapGlyph bit = reinterpret_cast<FT_BitmapGlyph>(glyph.image);
             render_halo_id(&bit->bitmap,
                            feature_id,
                            bit->left,

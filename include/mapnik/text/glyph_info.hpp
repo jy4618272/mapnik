@@ -41,7 +41,7 @@ typedef unsigned glyph_index_t;
 struct glyph_info
 {
     glyph_info()
-        : glyph_index(0), face(), char_index(0),
+        : glyph_index(0), face(nullptr), char_index(0),
           width(0), ymin(0), ymax(0), line_height(0) {}
     glyph_index_t glyph_index;
     face_ptr face;

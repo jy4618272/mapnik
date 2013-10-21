@@ -718,7 +718,7 @@ void cairo_renderer_base::process(shield_symbolizer const& sym,
     context_.set_operator(sym.comp_op());
 
     placements_list const& placements = helper.get();
-    BOOST_FOREACH(glyph_positions_ptr glyphs, placements)
+    for (glyph_positions_ptr const& glyphs : placements)
     {
         if (glyphs->marker())
         {
@@ -1278,7 +1278,7 @@ void cairo_renderer_base::process(text_symbolizer const& sym,
     context_.set_operator(sym.comp_op());
 
     placements_list const& placements = helper.get();
-    BOOST_FOREACH(glyph_positions_ptr glyphs, placements)
+    for (glyph_positions_ptr const& glyphs : placements)
     {
         context_.add_text(glyphs, face_manager_, font_manager_, scale_factor_);
     }
