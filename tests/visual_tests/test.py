@@ -177,14 +177,16 @@ other_tests = [
     {'name': "image-filters-multi-blur", 'sizes': [(512,512)]}
 ]
 
-test_names = {
+test_groups = {
     '!text': text_tests,
     '!tiff': tiff_tests,
     '!marker': marker_tests,
     '!other': other_tests,
 }
 
-files = text_tests + tiff_tests + marker_tests + other_tests
+files = []
+for group in test_groups.values():
+    files = files + group
 
 def find_file(filename):
     if filename.startswith('styles/'):
@@ -219,7 +221,7 @@ if __name__ == "__main__":
     parser.add_argument('-o', '--output-dir', action='store',
         default=visual_output_dir, help='output directory (default: %(default)s)', metavar='DIR')
     parser.add_argument('file', nargs='*', action='store',
-        help='only render these files (select groups of tests with "'+ '", "'.join(test_names.keys())+'")')
+        help='only render these files (select groups of tests with "'+ '", "'.join(test_groups.keys())+'")')
     args = parser.parse_args()
     
     reporting = Reporting(quiet=args.quiet)
@@ -230,8 +232,8 @@ if __name__ == "__main__":
     if args.file:
         new_files = []
         for f in args.file:
-            if f in test_names:
-                new_files += test_names[f]
+            if f in test_groups:
+                new_files += test_groups[f]
             else:
                 new_files.append(find_file(f))
         files = new_files
