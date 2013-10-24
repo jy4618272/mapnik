@@ -53,37 +53,34 @@ void text_layout::shape_text(text_line_ptr line)
     hb_buffer_pre_allocate(buffer.get(), length);
 
     std::list<text_item> const& list = itemizer_.itemize(start, end);
-    std::list<text_item>::const_iterator itr = list.begin(), list_end = list.end();
-    for (; itr != list_end; itr++)
+    //std::list<text_item>::const_iterator itr = list.begin(), list_end = list.end();
+    for (auto const& text_item : list)
     {
-        face_set_ptr face_set = font_manager_.get_face_set(itr->format->face_name, itr->format->fontset);
-
-        double size = itr->format->text_size * scale_factor_;
+        face_set_ptr face_set = font_manager_.get_face_set(text_item.format->face_name, text_item.format->fontset);
+        double size = text_item.format->text_size * scale_factor_;
         face_set->set_character_sizes(size);
-        font_face_set::iterator face_itr = face_set->begin(), face_end = face_set->end();
-        for (; face_itr != face_end; face_itr++)
+        //font_face_set::iterator face_itr = face_set->begin(), face_end = face_set->end();
+        for (auto const& face : *face_set)
         {
             hb_buffer_clear_contents(buffer.get());
-            hb_buffer_add_utf16(buffer.get(), text.getBuffer(), text.length(), itr->start, itr->end - itr->start);
-            hb_buffer_set_direction(buffer.get(), (itr->rtl == UBIDI_RTL)?HB_DIRECTION_RTL:HB_DIRECTION_LTR);
-            hb_buffer_set_script(buffer.get(), hb_icu_script_to_script(itr->script));
+            hb_buffer_add_utf16(buffer.get(), text.getBuffer(), text.length(), text_item.start, text_item.end - text_item.start);
+            hb_buffer_set_direction(buffer.get(), (text_item.rtl == UBIDI_RTL)?HB_DIRECTION_RTL:HB_DIRECTION_LTR);
+            hb_buffer_set_script(buffer.get(), hb_icu_script_to_script(text_item.script));
 #if 0
             hb_buffer_set_language(buffer.get(), hb_language_from_string (language, -1));
 #endif
-
-            face_ptr face = *face_itr;
-
-            hb_font_t *font(hb_ft_font_create(face->get_face(), NULL));
-            hb_shape(font, buffer.get(), 0 /*features*/, 0 /*num_features*/);
+            hb_font_t *font(hb_ft_font_create(face->get_face(), nullptr));
+            hb_shape(font, buffer.get(), 0, 0);
             hb_font_destroy(font);
+
             unsigned num_glyphs = hb_buffer_get_length(buffer.get());
 
-            hb_glyph_info_t *glyphs = hb_buffer_get_glyph_infos(buffer.get(), NULL);
-            hb_glyph_position_t *positions = hb_buffer_get_glyph_positions(buffer.get(), NULL);
+            hb_glyph_info_t *glyphs = hb_buffer_get_glyph_infos(buffer.get(), nullptr);
+            hb_glyph_position_t *positions = hb_buffer_get_glyph_positions(buffer.get(), nullptr);
 
             bool font_has_all_glyphs = true;
-            /* Check if all glyphs are valid. */
-            for (unsigned i=0; i<num_glyphs; i++)
+            // Check if all glyphs are valid.
+            for (unsigned i=0; i<num_glyphs; ++i)
             {
                 if (!glyphs[i].codepoint)
                 {
@@ -91,7 +88,7 @@ void text_layout::shape_text(text_line_ptr line)
                     break;
                 }
             }
-            if (!font_has_all_glyphs && face_itr+1 != face_end)
+            if (!font_has_all_glyphs) //&& face_itr+1 != face_end)
             {
                 //Try next font in fontset
                 continue;
@@ -103,7 +100,7 @@ void text_layout::shape_text(text_line_ptr line)
                 tmp.char_index = glyphs[i].cluster;
                 tmp.glyph_index = glyphs[i].codepoint;
                 tmp.face = face;
-                tmp.format = itr->format;
+                tmp.format = text_item.format;
                 face->glyph_dimensions(tmp);
                 tmp.width = positions[i].x_advance / 64.0; //Overwrite default width with better value provided by HarfBuzz
                 tmp.offset.set(positions[i].x_offset / 64.0, positions[i].y_offset / 64.0);
