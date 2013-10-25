@@ -264,16 +264,16 @@ void feature_style_processor<Processor>::apply_to_layer(layer const& lay,
     layer_rendering_material  mat(lay, proj0);
 
     prepare_layer(mat,
-            ctx_map,
-            p,
-            proj0,
-            m_.scale(),
-            scale_denom,
-            m_.width(),
-            m_.height(),
-            m_.get_current_extent(),
-            m_.buffer_size(),
-            names);
+                  ctx_map,
+                  p,
+                  proj0,
+                  scale,
+                  scale_denom,
+                  width,
+                  height,
+                  extent,
+                  buffer_size,
+                  names);
 
     if (!mat.active_styles_.empty())
     {
