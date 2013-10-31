@@ -95,12 +95,10 @@ private:
     bool first_line_;
 };
 
-typedef std::shared_ptr<text_line> text_line_ptr;
-
 class text_layout
 {
 public:
-    typedef std::vector<text_line_ptr> line_vector;
+    typedef std::vector<text_line> line_vector;
     typedef line_vector::const_iterator const_iterator;
     text_layout(face_manager_freetype & font_manager, double scale_factor);
 
@@ -115,28 +113,34 @@ public:
 
     /** Clear all data stored in this object. The object's state is the same as directly after construction. */
     void clear();
-    /** Height of all lines together (in pixels). */
-    double height() const;
-    /** Width of the longest line (in pixels). */
-    double width() const;
 
-    /** Return line iterator. */
-    const_iterator begin() const;
-    /** Iterator pointing to the place after the last line. */
-    const_iterator end() const;
-    /** Number of lines.*/
-    unsigned num_lines() const;
+    // Height of all lines together (in pixels).
+    inline double height() const { return height_; }
+    // Width of the longest line (in pixels).
+    inline double width() const { return width_ ; }
 
-    /** Width of a certain glyph cluster (in pixels). */
-    double cluster_width(unsigned cluster) const;
+    // Line iterator.
+    inline const_iterator begin() const { return lines_.begin(); }
+    inline const_iterator end() const { return lines_.end(); }
 
-    /** Returns the number of glyphs so memory can be preallocated. */
-    unsigned glyphs_count() const;
+    // Number of lines.
+    inline std::size_t num_lines() const { return lines_.size(); }
+
+    // Width of a certain glyph cluster (in pixels).
+    inline double cluster_width(unsigned cluster) const
+    {
+        std::map<unsigned, double>::const_iterator width_itr = width_map_.find(cluster);
+        if (width_itr != width_map_.end()) return width_itr->second;
+        return 0;
+    }
+
+    // Returns the number of glyphs so memory can be preallocated.
+    inline unsigned glyphs_count() const { return glyphs_count_;}
 
 private:
-    void break_line(text_line_ptr line, double wrap_width, unsigned text_ratio, bool wrap_before);
-    void shape_text(text_line_ptr line);
-    void add_line(text_line_ptr line);
+    void break_line(text_line & line, double wrap_width, unsigned text_ratio, bool wrap_before);
+    void shape_text(text_line & line);
+    void add_line(text_line & line);
     void clear_cluster_widths(unsigned first, unsigned last);
 
     //input
@@ -145,14 +149,13 @@ private:
 
     //processing
     text_itemizer itemizer_;
-    /** Maps char index (UTF-16) to width. If multiple glyphs map to the same char the sum of all widths is used
-        note: this probably isn't the best solution. it would be better to have an object for each cluster, but
-        it needs to be implemented with no overhead. */
+    // Maps char index (UTF-16) to width. If multiple glyphs map to the same char the sum of all widths is used
+    // note: this probably isn't the best solution. it would be better to have an object for each cluster, but
+    // it needs to be implemented with no overhead.
     std::map<unsigned, double> width_map_;
     double width_;
     double height_;
     unsigned glyphs_count_;
-
 
     //output
     line_vector lines_;

@@ -101,11 +101,6 @@ private:
 };
 
 
-
-/*************************************************************************/
-
-
-
 // Output is centered around (0,0)
 static void rotated_box2d(box2d<double> &box, rotation const& rot, double width, double height)
 {
@@ -118,12 +113,6 @@ pixel_position pixel_position::rotate(rotation const& rot) const
 {
     return pixel_position(x * rot.cos - y * rot.sin, x * rot.sin + y * rot.cos);
 }
-
-
-
-/*************************************************************************/
-
-
 
 placement_finder::placement_finder(feature_impl const& feature, DetectorType &detector, box2d<double> const& extent, text_placement_info_ptr placement_info, face_manager_freetype &font_manager, double scale_factor)
     : feature_(feature), detector_(detector), extent_(extent), layout_(font_manager, scale_factor), info_(placement_info), valid_(true), scale_factor_(scale_factor), placements_(), has_marker_(false), marker_(), marker_box_()
@@ -276,23 +265,21 @@ bool placement_finder::find_point_placement(pixel_position pos)
 
     // set for upper left corner of text envelope for the first line, top left of first character
     y = layout_.height() / 2.0;
-
     glyphs->reserve(layout_.glyphs_count());
-    text_layout::const_iterator line_itr = layout_.begin(), line_end = layout_.end();
-    for (; line_itr != line_end; line_itr++)
-    {
-        y -= (*line_itr)->height(); //Automatically handles first line differently
-        x = jalign_offset((*line_itr)->width());
 
-        text_line::const_iterator glyph_itr = (*line_itr)->begin(), glyph_end = (*line_itr)->end();
-        for (; glyph_itr != glyph_end; glyph_itr++)
+    for ( auto const& line : layout_)
+    {
+        y -= line.height(); //Automatically handles first line differently
+        x = jalign_offset(line.width());
+
+        for (auto const& glyph : line)
         {
             // place the character relative to the center of the string envelope
-            glyphs->push_back(*glyph_itr, pixel_position(x, y).rotate(orientation_), orientation_);
-            if (glyph_itr->width)
+            glyphs->push_back(glyph, pixel_position(x, y).rotate(orientation_), orientation_);
+            if (glyph.width)
             {
                 //Only advance if glyph is not part of a multiple glyph sequence
-                x += glyph_itr->width + glyph_itr->format->character_spacing * scale_factor_;
+                x += glyph.width + glyph.format->character_spacing * scale_factor_;
             }
         }
     }
@@ -395,16 +382,16 @@ bool placement_finder::single_line_placement(vertex_cache &pp, text_upright_e or
     double offset = alignment_offset().y + info_->properties.displacement.y * scale_factor_ + sign * layout_.height()/2.;
 
     glyphs->reserve(layout_.glyphs_count());
-    text_layout::const_iterator line_itr = layout_.begin(), line_end = layout_.end();
-    for (; line_itr != line_end; line_itr++)
+
+    for (auto const& line : layout_)
     {
         //Only subtract half the line height here and half at the end because text is automatically
         //centered on the line
-        offset -= sign * (*line_itr)->height()/2;
-        vertex_cache &off_pp = pp.get_offseted(offset, sign*layout_.width());
+        offset -= sign * line.height()/2;
+        vertex_cache & off_pp = pp.get_offseted(offset, sign*layout_.width());
         vertex_cache::scoped_state off_state(off_pp); //TODO: Remove this when a clean implementation in vertex_cache::get_offseted was done
 
-        if (!off_pp.move(sign * jalign_offset((*line_itr)->width())-alignment_offset().x)) return false;
+        if (!off_pp.move(sign * jalign_offset(line.width()) - alignment_offset().x)) return false;
 
         double last_cluster_angle = 999;
         signed current_cluster = -1;
@@ -413,10 +400,8 @@ bool placement_finder::single_line_placement(vertex_cache &pp, text_upright_e or
         rotation rot;
         double last_glyph_spacing = 0.;
 
-        text_line::const_iterator glyph_itr = (*line_itr)->begin(), glyph_end = (*line_itr)->end();
-        for (; glyph_itr != glyph_end; glyph_itr++)
+        for (auto const& glyph : line)
         {
-            glyph_info const& glyph = *glyph_itr;
             if (current_cluster != glyph.char_index)
             {
                 if (!off_pp.move(sign * (layout_.cluster_width(current_cluster) + last_glyph_spacing)))
@@ -440,12 +425,12 @@ bool placement_finder::single_line_placement(vertex_cache &pp, text_upright_e or
 
             pixel_position pos = off_pp.current_position() + cluster_offset;
             //Center the text on the line
-            double char_height = (*line_itr)->max_char_height();
+            double char_height = line.max_char_height();
             pos.y = -pos.y - char_height/2.0*rot.cos;
             pos.x =  pos.x + char_height/2.0*rot.sin;
 
-            cluster_offset.x += rot.cos * glyph_itr->width;
-            cluster_offset.y -= rot.sin * glyph_itr->width;
+            cluster_offset.x += rot.cos * glyph.width;
+            cluster_offset.y -= rot.sin * glyph.width;
 
             box2d<double> bbox = get_bbox(glyph, pos, rot);
             if (collision(bbox)) return false;
@@ -453,7 +438,7 @@ bool placement_finder::single_line_placement(vertex_cache &pp, text_upright_e or
             glyphs->push_back(glyph, pos, rot);
         }
         //See comment above
-        offset -= sign * (*line_itr)->height()/2;
+        offset -= sign * line.height()/2;
     }
     if (upside_down_glyph_count > layout_.text().length()/2)
     {

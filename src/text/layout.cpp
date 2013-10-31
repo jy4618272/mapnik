@@ -28,6 +28,7 @@
 
 namespace mapnik
 {
+
 text_layout::text_layout(face_manager_freetype &font_manager, double scale_factor)
     : font_manager_(font_manager), scale_factor_(scale_factor),
       itemizer_(), width_(0), height_(0), glyphs_count_(0),
@@ -48,10 +49,10 @@ mapnik::value_unicode_string const& text_layout::text() const
 void text_layout::layout(double wrap_width, unsigned text_ratio, bool wrap_before)
 {
     unsigned num_lines = itemizer_.num_lines();
-    for (unsigned i = 0; i < num_lines; i++)
+    for (unsigned i = 0; i < num_lines; ++i)
     {
         std::pair<unsigned, unsigned> line_limits = itemizer_.line(i);
-        text_line_ptr line = std::make_shared<text_line>(line_limits.first, line_limits.second);
+        text_line line(line_limits.first, line_limits.second);
         break_line(line, wrap_width, text_ratio, wrap_before); //Break line if neccessary
     }
 }
@@ -60,10 +61,10 @@ void text_layout::layout(double wrap_width, unsigned text_ratio, bool wrap_befor
  * This makes line breaking easy. One word is added to the current line at a time. Once the line is too long
  * we either go back one step or inset the line break at the current position (depending on "wrap_before" setting).
  * At the end everything that is left over is added as the final line. */
-void text_layout::break_line(text_line_ptr line, double wrap_width, unsigned text_ratio, bool wrap_before)
+void text_layout::break_line(text_line & line, double wrap_width, unsigned text_ratio, bool wrap_before)
 {
     shape_text(line);
-    if (!wrap_width || line->width() < wrap_width)
+    if (!wrap_width || line.width() < wrap_width)
     {
         add_line(line);
         return;
@@ -72,8 +73,8 @@ void text_layout::break_line(text_line_ptr line, double wrap_width, unsigned tex
     if (text_ratio)
     {
         double wrap_at;
-        double string_width = line->width();
-        double string_height = line->line_height();
+        double string_width = line.width();
+        double string_height = line.line_height();
         for (double i = 1.0; ((wrap_at = string_width/i)/(string_height*i)) > text_ratio && (string_width/i) > wrap_width; i += 1.0) ;
         wrap_width = wrap_at;
     }
@@ -84,7 +85,8 @@ void text_layout::break_line(text_line_ptr line, double wrap_width, unsigned tex
     BreakIterator *breakitr = BreakIterator::createLineInstance(locale, status);
 
     //Not breaking the text if an error occurs is probably the best thing we can do.
-    if (!U_SUCCESS(status)) {
+    if (!U_SUCCESS(status))
+    {
         add_line(line);
         return;
     }
@@ -92,8 +94,8 @@ void text_layout::break_line(text_line_ptr line, double wrap_width, unsigned tex
     breakitr->setText(text);
 
     double current_line_length = 0;
-    unsigned last_break_position = line->first_char();
-    for (unsigned i=line->first_char(); i<line->last_char(); i++)
+    unsigned last_break_position = line.first_char();
+    for (unsigned i=line.first_char(); i < line.last_char(); ++i)
     {
         //TODO: character_spacing
         std::map<unsigned, double>::const_iterator width_itr = width_map_.find(i);
@@ -115,16 +117,16 @@ void text_layout::break_line(text_line_ptr line, double wrap_width, unsigned tex
             break_position = breakitr->following(i);
             if (break_position == BreakIterator::DONE)
             {
-                break_position = line->last_char();
+                break_position = line.last_char();
                 MAPNIK_LOG_WARN(text_layout) << "Unexpected result in break_line. Trying to recover...\n";
             }
         }
         /* Break iterator operates on the whole string, while we only look at one line. So we need to
          * clamp break values. */
-        if (break_position < line->first_char()) break_position = line->first_char();
-        if (break_position > line->last_char()) break_position = line->last_char();
+        if (break_position < line.first_char()) break_position = line.first_char();
+        if (break_position > line.last_char()) break_position = line.last_char();
 
-        text_line_ptr new_line = std::make_shared<text_line>(last_break_position, break_position);
+        text_line new_line(last_break_position, break_position);
         clear_cluster_widths(last_break_position, break_position);
         shape_text(new_line);
         add_line(new_line);
@@ -132,37 +134,35 @@ void text_layout::break_line(text_line_ptr line, double wrap_width, unsigned tex
         i = break_position - 1;
         current_line_length = 0;
     }
-    if (last_break_position == line->first_char())
+    if (last_break_position == line.first_char())
     {
         //No line breaks => no reshaping required
         add_line(line);
     }
-    else if (last_break_position != line->last_char())
+    else if (last_break_position != line.last_char())
     {
-        text_line_ptr new_line = std::make_shared<text_line>(last_break_position, line->last_char());
-        clear_cluster_widths(last_break_position, line->last_char());
+        text_line new_line(last_break_position, line.last_char());
+        clear_cluster_widths(last_break_position, line.last_char());
         shape_text(new_line);
         add_line(new_line);
     }
 }
 
-
-
-void text_layout::add_line(text_line_ptr line)
+void text_layout::add_line(text_line & line)
 {
     if (lines_.empty())
     {
-        line->set_first_line(true);
+        line.set_first_line(true);
     }
+    height_ += line.height();
+    glyphs_count_ += line.size();
+    width_ = std::max(width_, line.width());
     lines_.push_back(line);
-    width_ = std::max(width_, line->width());
-    height_ += line->height();
-    glyphs_count_ += line->size();
 }
 
 void text_layout::clear_cluster_widths(unsigned first, unsigned last)
 {
-    for (int i=first; i<last; i++)
+    for (int i=first; i<last; ++i)
     {
         width_map_[i] = 0;
     }
@@ -177,51 +177,13 @@ void text_layout::clear()
     height_ = 0.;
 }
 
-double text_layout::height() const
-{
-    return height_;
-}
-
-double text_layout::width() const
-{
-    return width_;
-}
-
-text_layout::const_iterator text_layout::begin() const
-{
-    return lines_.begin();
-}
-
-text_layout::const_iterator text_layout::end() const
-{
-    return lines_.end();
-}
-
-unsigned text_layout::num_lines() const
-{
-    return lines_.size();
-}
-
-double text_layout::cluster_width(unsigned cluster) const
-{
-    std::map<unsigned, double>::const_iterator width_itr = width_map_.find(cluster);
-    if (width_itr != width_map_.end()) return width_itr->second;
-    return 0;
-}
-
-unsigned text_layout::glyphs_count() const
-{
-    return glyphs_count_;
-}
-
-/*********************************************************************************************/
+////////////////////////////////////////////////////////////////////////
 
 text_line::text_line(unsigned first_char, unsigned last_char)
     : glyphs_(), line_height_(0.), max_char_height_(0.),
       width_(0.), first_char_(first_char), last_char_(last_char),
       first_line_(false)
-{
-}
+{}
 
 void text_line::add_glyph(const glyph_info &glyph, double scale_factor_)
 {
@@ -229,7 +191,9 @@ void text_line::add_glyph(const glyph_info &glyph, double scale_factor_)
     if (glyphs_.empty())
     {
         width_ = glyph.width;
-    } else if (glyph.width) {
+    }
+    else if (glyph.width)
+    {
         //Only add character spacing if the character is not a zero-width part of a cluster.
         width_ += glyph.width + glyphs_.back().format->character_spacing  * scale_factor_;
     }

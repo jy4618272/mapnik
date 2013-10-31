@@ -35,10 +35,10 @@
 namespace mapnik
 {
 
-void text_layout::shape_text(text_line_ptr line)
+void text_layout::shape_text(text_line & line)
 {
-    unsigned start = line->first_char();
-    unsigned end = line->last_char();
+    unsigned start = line.first_char();
+    unsigned end = line.last_char();
     mapnik::value_unicode_string const& text = itemizer_.text();
 
     size_t length = end - start;
@@ -49,18 +49,17 @@ void text_layout::shape_text(text_line_ptr line)
 
     hb_buffer_set_unicode_funcs(buffer.get(), hb_icu_get_unicode_funcs());
 
-    line->reserve(length); //Preallocate memory
+    line.reserve(length); //Preallocate memory
     hb_buffer_pre_allocate(buffer.get(), length);
 
     std::list<text_item> const& list = itemizer_.itemize(start, end);
-    //std::list<text_item>::const_iterator itr = list.begin(), list_end = list.end();
     for (auto const& text_item : list)
     {
         face_set_ptr face_set = font_manager_.get_face_set(text_item.format->face_name, text_item.format->fontset);
         double size = text_item.format->text_size * scale_factor_;
         face_set->set_character_sizes(size);
-        //font_face_set::iterator face_itr = face_set->begin(), face_end = face_set->end();
-        for (auto const& face : *face_set)
+        font_face_set::iterator face_itr = face_set->begin(), face_end = face_set->end();
+        for (; face_itr != face_end; ++face_itr)
         {
             hb_buffer_clear_contents(buffer.get());
             hb_buffer_add_utf16(buffer.get(), text.getBuffer(), text.length(), text_item.start, text_item.end - text_item.start);
@@ -69,6 +68,7 @@ void text_layout::shape_text(text_line_ptr line)
 #if 0
             hb_buffer_set_language(buffer.get(), hb_language_from_string (language, -1));
 #endif
+            face_ptr const& face = *face_itr;
             hb_font_t *font(hb_ft_font_create(face->get_face(), nullptr));
             hb_shape(font, buffer.get(), 0, 0);
             hb_font_destroy(font);
@@ -88,7 +88,7 @@ void text_layout::shape_text(text_line_ptr line)
                     break;
                 }
             }
-            if (!font_has_all_glyphs) //&& face_itr+1 != face_end)
+            if (!font_has_all_glyphs && face_itr+1 != face_end)
             {
                 //Try next font in fontset
                 continue;
@@ -107,9 +107,9 @@ void text_layout::shape_text(text_line_ptr line)
 
                 width_map_[glyphs[i].cluster] += tmp.width;
 
-                line->add_glyph(tmp, scale_factor_);
+                line.add_glyph(tmp, scale_factor_);
             }
-            line->update_max_char_height(face->get_char_height());
+            line.update_max_char_height(face->get_char_height());
             break; //When we reach this point the current font had all glyphs.
         }
     }

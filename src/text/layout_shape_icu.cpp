@@ -34,15 +34,15 @@
 namespace mapnik
 {
 
-void text_layout::shape_text(text_line_ptr line)
+void text_layout::shape_text(text_line & line)
 {
-    unsigned start = line->first_char();
-    unsigned end = line->last_char();
+    unsigned start = line.first_char();
+    unsigned end = line.last_char();
     mapnik::value_unicode_string const& text = itemizer_.text();
 
     size_t length = end - start;
     if (!length) return;
-    line->reserve(length);
+    line.reserve(length);
     std::list<text_item> const& list = itemizer_.itemize(start, end);
 
     UErrorCode err = U_ZERO_ERROR;
@@ -89,12 +89,12 @@ void text_layout::shape_text(text_line_ptr line)
                     tmp.format = text_item.format;
                     face->glyph_dimensions(tmp);
                     width_map_[i] += tmp.width;
-                    line->add_glyph(tmp, scale_factor_);
+                    line.add_glyph(tmp, scale_factor_);
                     ++i;
                 }
             }
             if (!shaped_status) continue;
-            line->update_max_char_height(face->get_char_height());
+            line.update_max_char_height(face->get_char_height());
             return;
         }
     }
