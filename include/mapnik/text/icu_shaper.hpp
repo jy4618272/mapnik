@@ -19,11 +19,14 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  *****************************************************************************/
-// mapnik
-#include <mapnik/text/layout.hpp>
-#include <mapnik/text/text_properties.hpp>
-#include <mapnik/text/face.hpp>
 
+#ifndef MAPNIK_ICU_SHAPER_HPP
+#define MAPNIK_ICU_SHAPER_HPP
+
+// mapnik
+#include <mapnik/text/text_properties.hpp>
+#include <mapnik/text/text_line.hpp>
+#include <mapnik/text/face.hpp>
 // stl
 #include <list>
 // icu
@@ -31,19 +34,26 @@
 #include <unicode/ushape.h>
 #include <unicode/schriter.h>
 
+
 namespace mapnik
 {
 
-void text_layout::shape_text(text_line & line)
+struct icu_shaper
+{
+static void shape_text(text_line & line,
+                       text_itemizer & itemizer,
+                       std::map<unsigned,double> & width_map,
+                       face_manager_freetype & font_manager,
+                       double scale_factor )
 {
     unsigned start = line.first_char();
     unsigned end = line.last_char();
-    mapnik::value_unicode_string const& text = itemizer_.text();
+    mapnik::value_unicode_string const& text = itemizer.text();
 
     size_t length = end - start;
     if (!length) return;
     line.reserve(length);
-    std::list<text_item> const& list = itemizer_.itemize(start, end);
+    std::list<text_item> const& list = itemizer.itemize(start, end);
 
     UErrorCode err = U_ZERO_ERROR;
     mapnik::value_unicode_string shaped;
@@ -51,8 +61,8 @@ void text_layout::shape_text(text_line & line)
 
     for (auto const& text_item : list)
     {
-        face_set_ptr face_set = font_manager_.get_face_set(text_item.format->face_name, text_item.format->fontset);
-        double size = text_item.format->text_size * scale_factor_;
+        face_set_ptr face_set = font_manager.get_face_set(text_item.format->face_name, text_item.format->fontset);
+        double size = text_item.format->text_size * scale_factor;
         face_set->set_character_sizes(size);
         for (auto const& face : *face_set)
         {
@@ -88,8 +98,8 @@ void text_layout::shape_text(text_line & line)
                     tmp.face = face;
                     tmp.format = text_item.format;
                     face->glyph_dimensions(tmp);
-                    width_map_[i] += tmp.width;
-                    line.add_glyph(tmp, scale_factor_);
+                    width_map[i] += tmp.width;
+                    line.add_glyph(tmp, scale_factor);
                     ++i;
                 }
             }
@@ -100,4 +110,7 @@ void text_layout::shape_text(text_line & line)
     }
 }
 
-} //ns mapnik
+};
+} //namespace mapnik
+
+#endif // MAPNIK_ICU_SHAPER_HPP

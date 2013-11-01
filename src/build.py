@@ -211,7 +211,7 @@ source = Split(
     text/placements/list.cpp
     text/placements/simple.cpp
     text/layout.cpp
-    text/layout_shape_hb.cpp
+    text/text_line.cpp
     text/itemizer.cpp
     text/scrptrun.cpp
     text/face.cpp
