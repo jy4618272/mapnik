@@ -2,7 +2,7 @@
  *
  * This file is part of Mapnik (c++ mapping toolkit)
  *
- * Copyright (C) 2011 Artem Pavlenko
+ * Copyright (C) 2013 Artem Pavlenko
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -33,6 +33,7 @@
 #include <mapnik/path_expression.hpp>
 #include <mapnik/parse_path.hpp>
 #include <mapnik/color.hpp>
+#include <mapnik/symbolizer_keys.hpp>
 // stl
 #include <memory>
 #include <vector>
@@ -64,7 +65,7 @@ struct  MAPNIK_DECL symbolizer_base
                            mapnik::expression_ptr,
                            mapnik::path_expression_ptr,
                            mapnik::transform_type> value_type;
-    typedef std::string key_type;
+    typedef mapnik::keys key_type;
     typedef std::map<key_type, value_type> cont_type;
     cont_type properties;
 };
@@ -169,13 +170,13 @@ struct extract_raw_value : public boost::static_visitor<T1>
 };
 
 template <typename T>
-void put(symbolizer_base & sym, std::string const& key, T const& val)
+void put(symbolizer_base & sym, keys key, T const& val)
 {
     sym.properties.insert(std::make_pair(key, val));
 }
 
 template <typename T>
-T get(symbolizer_base const& sym, std::string const& key, mapnik::feature_impl const& feature, T const& default_value = T())
+T get(symbolizer_base const& sym, keys key, mapnik::feature_impl const& feature, T const& default_value = T())
 {
     typedef symbolizer_base::cont_type::const_iterator const_iterator;
     const_iterator itr = sym.properties.find(key);
@@ -187,7 +188,7 @@ T get(symbolizer_base const& sym, std::string const& key, mapnik::feature_impl c
 }
 
 template <typename T>
-T get(symbolizer_base const& sym, std::string const& key, T const& default_value = T())
+T get(symbolizer_base const& sym, keys key, T const& default_value = T())
 {
     typedef symbolizer_base::cont_type::const_iterator const_iterator;
     const_iterator itr = sym.properties.find(key);

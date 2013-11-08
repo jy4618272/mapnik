@@ -66,10 +66,10 @@ void agg_renderer<T>::process(polygon_symbolizer const& sym,
                      CoordTransform, proj_transform, agg::trans_affine, conv_types>
         converter(clip_box,*ras_ptr,sym,t_,prj_trans,tr,scale_factor_);
 
-    bool clip = get<bool>(sym, "clip", feature);
-    double simplify_tolerance = get<double>(sym, "simplify-tolerance", feature);
-    double smooth = get<double>(sym, "smooth", feature);
-    double opacity = get<double>(sym,"fill-opacity",feature);
+    bool clip = get<bool>(sym, keys::clip, feature);
+    double simplify_tolerance = get<double>(sym, keys::simplify_tolerance, feature);
+    double smooth = get<double>(sym, keys::smooth, feature);
+    double opacity = get<double>(sym,keys::fill_opacity,feature);
 
     if (prj_trans.equal() && clip) converter.set<clip_poly_tag>(); //optional clip (default: true)
     converter.set<transform_tag>(); //always transform
@@ -87,7 +87,7 @@ void agg_renderer<T>::process(polygon_symbolizer const& sym,
 
     agg::rendering_buffer buf(current_buffer_->raw_data(),current_buffer_->width(),current_buffer_->height(), current_buffer_->width() * 4);
 
-    color const& fill = get<mapnik::color>(sym, "fill", feature);
+    color const& fill = get<mapnik::color>(sym, keys::fill, feature);
     unsigned r=fill.red();
     unsigned g=fill.green();
     unsigned b=fill.blue();

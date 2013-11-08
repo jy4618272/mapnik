@@ -81,7 +81,7 @@ bool text_symbolizer_helper<FaceManagerT, DetectorT>::next()
     if (!placement_valid_) return false;
     if (point_placement_)
         return next_point_placement();
-    else if (get<bool>(sym_, "clip"))
+    else if (get<bool>(sym_, keys::clip))
         return next_line_placement_clipped();
     else
         return next_line_placement();
@@ -436,7 +436,7 @@ bool shield_symbolizer_helper<FaceManagerT, DetectorT>::next_line_placement()
                       -0.5 * marker_ext_.height() - pos.second,
                       0.5 * marker_ext_.width()  - pos.first,
                       0.5 * marker_ext_.height() - pos.second));
-    if ( get<bool>(sym_, "clip"))
+    if ( get<bool>(sym_, keys::clip))
     {
         return text_symbolizer_helper<FaceManagerT, DetectorT>::next_line_placement_clipped();
     }
@@ -451,8 +451,8 @@ template <typename FaceManagerT, typename DetectorT>
 void shield_symbolizer_helper<FaceManagerT, DetectorT>::init_marker()
 {
     //std::string filename = path_processor_type::evaluate(*sym_.get_filename(), this->feature_);
-    std::string filename = get<std::string>(sym_, "filename", feature_);
-    evaluate_transform(image_transform_, feature_, get<transform_type>(sym_,"image-transform"));
+    std::string filename = get<std::string>(sym_, keys::filename, feature_);
+    evaluate_transform(image_transform_, feature_, get<transform_type>(sym_, keys::image_transform));
     marker_.reset();
     if (!filename.empty())
     {
