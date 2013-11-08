@@ -32,7 +32,6 @@
 namespace mapnik {
 
 class feature_impl;
-class processed_text;
 class xml_node;
 struct char_properties;
 
