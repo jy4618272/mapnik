@@ -67,6 +67,8 @@ struct  MAPNIK_DECL symbolizer_base
                            mapnik::transform_type> value_type;
     typedef mapnik::keys key_type;
     typedef std::map<key_type, value_type> cont_type;
+//symbolizer_base() {}
+//symbolizer_base(symbolizer_base const&) = delete;
     cont_type properties;
 };
 

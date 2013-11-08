@@ -38,36 +38,8 @@
 namespace mapnik
 {
 
-struct MAPNIK_DECL raster_symbolizer : public symbolizer_base
-{
-    raster_symbolizer();
-    raster_symbolizer(raster_symbolizer const& rhs);
+struct MAPNIK_DECL raster_symbolizer : public symbolizer_base {} ;
 
-    std::string const& get_mode() const;
-    void set_mode(std::string const& mode);
-    scaling_method_e get_scaling_method() const;
-    void set_scaling_method(scaling_method_e scaling);
-    void set_opacity(float opacity);
-    float get_opacity() const;
-    raster_colorizer_ptr get_colorizer() const;
-    void set_colorizer(raster_colorizer_ptr const& colorizer);
-    double get_filter_factor() const;
-    void set_filter_factor(double filter_factor);
-    double calculate_filter_factor() const;
-    unsigned get_mesh_size() const;
-    void set_mesh_size(unsigned mesh_size);
-    boost::optional<bool> premultiplied() const;
-    void set_premultiplied(bool premultiplied);
-
-private:
-    std::string mode_;
-    scaling_method_e scaling_;
-    float opacity_;
-    raster_colorizer_ptr colorizer_;
-    double filter_factor_;
-    unsigned mesh_size_;
-    boost::optional<bool> premultiplied_;
-};
 }
 
 #endif // MAPNIK_RASTER_SYMBOLIZER_HPP

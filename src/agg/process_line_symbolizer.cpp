@@ -59,24 +59,23 @@ void agg_renderer<T>::process(line_symbolizer const& sym,
                               proj_transform const& prj_trans)
 
 {
-#if 0
-    color const& col = get<color>(sym, "stroke", feature);
+    color const& col = get<color>(sym, keys::stroke, feature);
     unsigned r=col.red();
     unsigned g=col.green();
     unsigned b=col.blue();
     unsigned a=col.alpha();
 
-    double gamma = get<double>(sym, "gamma", feature);
-    gamma_method_enum gamma_method = static_cast<gamma_method_enum>(get<int>(sym, "gamma-method", feature));
+    double gamma = get<double>(sym, keys::gamma, feature);
+    gamma_method_enum gamma_method = static_cast<gamma_method_enum>(get<value_integer>(sym, keys::gamma_method, feature));
     ras_ptr->reset();
-
+#if 0
     if (gamma = gamma_ || gamma_method != gamma_method_)
     {
         //set_gamma_method(sym, ras_ptr, feature); // FIXME
         gamma_method_ = gamma_method;
         gamma_ = gamma;
     }
-
+#endif
     agg::rendering_buffer buf(current_buffer_->raw_data(),current_buffer_->width(),current_buffer_->height(), current_buffer_->width() * 4);
 
     typedef agg::rgba8 color_type;
@@ -89,19 +88,19 @@ void agg_renderer<T>::process(line_symbolizer const& sym,
                                simplify_tag, smooth_tag, dash_tag, stroke_tag> conv_types;
 
     pixfmt_comp_type pixf(buf);
-    pixf.comp_op(static_cast<agg::comp_op_e>(get<int>(sym, "comp-op", feature)));
+    //pixf.comp_op(static_cast<agg::comp_op_e>(get<int>(sym, "comp-op", feature)));
     renderer_base renb(pixf);
     agg::trans_affine tr;
-    evaluate_transform(tr, feature, get<transform_type>(sym, "transform", feature));
+    //evaluate_transform(tr, feature, get<transform_type>(sym, "transform", feature));
     box2d<double> clip_box = clipping_extent();
 
-    bool clip = get<bool>(sym, "clip", feature);
-    double width = get<double>(sym, "stroke-width", feature);
-    double opacity = get<double>(sym,"stroke-opacity",feature);
-    double offset = get<double>(sym, "offset", feature);
-    double simplify_tolerance = get<double>(sym, "simplify-tolerance", feature);
-    double smooth = get<double>(sym, "smooth", feature);
-    line_rasterizer_enum rasterizer_e = static_cast<line_rasterizer_enum>(get<int>(sym, "rasterizer", feature));
+    bool clip = get<bool>(sym, keys::clip, feature);
+    double width = get<double>(sym, keys::stroke_width, feature);
+    double opacity = get<double>(sym,keys::stroke_opacity,feature);
+    double offset = get<double>(sym, keys::offset, feature);
+    double simplify_tolerance = get<double>(sym, keys::simplify_tolerance, feature);
+    double smooth = get<double>(sym, keys::smooth, feature);
+    line_rasterizer_enum rasterizer_e = static_cast<line_rasterizer_enum>(get<value_integer>(sym, keys::rasterizer_mode, feature));
     if (clip)
     {
         double padding = (double)(query_extent_.width()/pixmap_.width());
@@ -123,7 +122,7 @@ void agg_renderer<T>::process(line_symbolizer const& sym,
         //draw_geo_extent(inverse,mapnik::color("red"));
     }
 
-    if (rasterizer_e == RASTERIZER_FAST)
+    if (0) //rasterizer_e == RASTERIZER_FAST)
     {
         typedef agg::renderer_outline_aa<renderer_base> renderer_type;
         typedef agg::rasterizer_outline_aa<renderer_type> rasterizer_type;
@@ -182,7 +181,6 @@ void agg_renderer<T>::process(line_symbolizer const& sym,
         ras_ptr->filling_rule(agg::fill_non_zero);
         agg::render_scanlines(*ras_ptr, sl, ren);
     }
-#endif
 }
 
 

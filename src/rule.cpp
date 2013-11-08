@@ -51,6 +51,7 @@ namespace {
 
     struct deepcopy_symbolizer : public boost::static_visitor<>
     {
+/*
         void operator () (mapnik::raster_symbolizer & sym) const
         {
             mapnik::raster_colorizer_ptr old_colorizer = sym.get_colorizer();
@@ -76,12 +77,13 @@ namespace {
         {
             copy_height_ptr(sym);
         }
+*/
 
         template <typename T> void operator () (T &sym) const
         {
             boost::ignore_unused_variable_warning(sym);
         }
-
+/*
         template <class T>
         void copy_text_ptr(T & sym) const
         {
@@ -95,6 +97,7 @@ namespace {
             std::string height_expr = mapnik::to_expression_string(*sym.height());
             sym.set_height(mapnik::parse_expression(height_expr,"utf8"));
         }
+*/
     };
 
 }
@@ -197,9 +200,9 @@ std::string const& rule::get_name() const
     return name_;
 }
 
-void rule::append(symbolizer const& sym)
+void rule::append(symbolizer && sym)
 {
-    syms_.push_back(sym);
+    syms_.push_back(std::move(sym));
 }
 
 void rule::remove_at(size_t index)

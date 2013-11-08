@@ -40,6 +40,7 @@
 namespace mapnik
 {
 
+#if 0
 raster_symbolizer::raster_symbolizer()
         : symbolizer_base(),
         mode_("normal"),
@@ -188,5 +189,5 @@ boost::optional<bool> raster_symbolizer::premultiplied() const
 {
     return premultiplied_;
 }
-
+#endif
 }

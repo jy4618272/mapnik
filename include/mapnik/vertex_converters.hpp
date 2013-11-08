@@ -166,15 +166,12 @@ struct converter_traits<T, mapnik::stroke_tag>
     static void setup(geometry_type & geom, Args const& args)
     {
         typename boost::mpl::at<Args,boost::mpl::int_<2> >::type sym = boost::fusion::at_c<2>(args);
-        //stroke const& stroke_ = sym.get_stroke();
-        //set_join_caps(sym, geom); // FIXME
-
-
-        //double miterlimit = get<double>(sym, "stroke-miterlimit");
-        //double width = get<double>(sym, "stroke-width");
-        //geom.generator().miter_limit(miterlimit);
-        //double scale_factor = boost::fusion::at_c<6>(args);
-        //geom.generator().width(width * scale_factor);
+        set_join_caps(sym, geom);
+        double miterlimit = get<double>(sym, keys::stroke_miterlimit);
+        double width = get<double>(sym, keys::stroke_width);
+        geom.generator().miter_limit(miterlimit);
+        double scale_factor = boost::fusion::at_c<6>(args);
+        geom.generator().width(width * scale_factor);
     }
 };
 

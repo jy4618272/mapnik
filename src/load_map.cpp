@@ -968,7 +968,7 @@ void map_parser::parse_point_symbolizer(rule & rule, xml_node const & sym)
             }
         }
         parse_symbolizer_base(symbol, sym);
-        rule.append(symbol);
+        rule.append(std::move(symbol));
     }
     catch (config_error const& ex)
     {
@@ -1076,7 +1076,7 @@ void map_parser::parse_markers_symbolizer(rule & rule, xml_node const& sym)
         //put(symbol, "multi-policy", mpolicy);
 
         parse_symbolizer_base(symbol, sym);
-        rule.append(symbol);
+        rule.append(std::move(symbol));
     }
     catch (config_error const& ex)
     {
@@ -1116,7 +1116,7 @@ void map_parser::parse_line_pattern_symbolizer(rule & rule, xml_node const & sym
         if (offset) put(symbol, keys::offset, *offset);
 
         parse_symbolizer_base(symbol, sym);
-        rule.append(symbol);
+        rule.append(std::move(symbol));
     }
     catch (config_error const& ex)
     {
@@ -1170,7 +1170,7 @@ void map_parser::parse_polygon_pattern_symbolizer(rule & rule,
         if (gamma_method) put<value_integer>(symbol, keys::gamma_method, *gamma_method);
 
         parse_symbolizer_base(symbol, sym);
-        rule.append(symbol);
+        rule.append(std::move(symbol));
     }
     catch (config_error const& ex)
     {
@@ -1316,31 +1316,27 @@ void map_parser::parse_shield_symbolizer(rule & rule, xml_node const& sym)
 
 bool map_parser::parse_stroke(symbolizer_base & symbol, xml_node const & sym)
 {
-    bool result = false;
+    bool result = true;
 
     // stroke color
-    optional<color> c = sym.get_opt_attr<color>("stroke");
-    if (c)
+    optional<color> stroke = sym.get_opt_attr<color>("stroke");
+    if (stroke)
     {
-        result = true;
-        put(symbol, keys::stroke, *c);
+        put(symbol, keys::stroke, *stroke);
+    }
+    else
+    {
+        put(symbol, keys::stroke, color());
     }
 
     // stroke-width
-    optional<double> width = sym.get_opt_attr<double>("stroke-width");
-    if (width)
-    {
-        result = true;
-        put(symbol, keys::stroke_width, *width);
-    }
+    double width = sym.get_attr<double>("stroke-width", 1);
+    put(symbol, keys::stroke_width, width);
+
 
     // stroke-opacity
-    optional<double> opacity = sym.get_opt_attr<double>("stroke-opacity");
-    if (opacity)
-    {
-        result = true;
-        put(symbol, keys::stroke_opacity, *opacity);
-    }
+    double opacity = sym.get_attr<double>("stroke-opacity", 1.0);
+    put(symbol, keys::stroke_opacity, opacity);
 
     // stroke-linejoin
     optional<line_join_e> line_join = sym.get_opt_attr<line_join_e>("stroke-linejoin");
@@ -1395,8 +1391,8 @@ bool map_parser::parse_stroke(symbolizer_base & symbol, xml_node const & sym)
 #endif
 
     // stroke-miterlimit
-    optional<double> miterlimit = sym.get_opt_attr<double>("stroke-miterlimit");
-    if (miterlimit) put(symbol, keys::stroke_miterlimit, *miterlimit);
+    optional<double> miterlimit = sym.get_attr<double>("stroke-miterlimit",4.0);
+    put(symbol, keys::stroke_miterlimit, *miterlimit);
     return result;
 }
 
@@ -1415,7 +1411,7 @@ void map_parser::parse_line_symbolizer(rule & rule, xml_node const & sym)
         put<value_integer>(symbol, keys::rasterizer_mode, rasterizer);
 
         parse_symbolizer_base(symbol, sym);
-        rule.append(symbol);
+        rule.append(std::move(symbol));
     }
     catch (config_error const& ex)
     {
@@ -1434,7 +1430,6 @@ void map_parser::parse_polygon_symbolizer(rule & rule, xml_node const & sym)
         optional<color> fill = sym.get_opt_attr<color>("fill");
         if (fill)
         {
-            std::cerr << *fill << std::endl;
             put<mapnik::color>(poly_sym, keys::fill, *fill);
         }
         // fill-opacity
@@ -1585,7 +1580,7 @@ void map_parser::parse_debug_symbolizer(rule & rule, xml_node const & sym)
     debug_symbolizer_mode_e mode =
         sym.get_attr<debug_symbolizer_mode_e>("mode", DEBUG_SYM_MODE_COLLISION);
     put<value_integer>(symbol, keys::mode, mode);
-    rule.append(symbol);
+    rule.append(std::move(symbol));
 }
 
 bool map_parser::parse_raster_colorizer(raster_colorizer_ptr const& rc,

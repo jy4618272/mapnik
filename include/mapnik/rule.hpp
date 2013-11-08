@@ -155,7 +155,7 @@ public:
     double get_min_scale() const;
     void set_name(std::string const& name);
     std::string const& get_name() const;
-    void append(symbolizer const& sym);
+    void append(symbolizer && sym);
     void remove_at(size_t index);
     const symbolizers& get_symbolizers() const;
     symbolizers::const_iterator begin() const;

@@ -224,7 +224,7 @@ struct symbolizer_attributes : public boost::static_visitor<>
 
     void operator () (raster_symbolizer const& sym)
     {
-        filter_factor_ = sym.calculate_filter_factor();
+        filter_factor_ = 1.0;// FIXME sym.calculate_filter_factor();
     }
 
 private:

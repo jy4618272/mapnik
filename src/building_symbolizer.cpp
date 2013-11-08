@@ -28,6 +28,7 @@
 namespace mapnik
 {
 
+#if 0
 building_symbolizer::building_symbolizer()
     : symbolizer_base(),
       fill_(color(128,128,128)),
@@ -68,5 +69,5 @@ double building_symbolizer::get_opacity() const
 {
     return opacity_;
 }
-
+#endif
 }
