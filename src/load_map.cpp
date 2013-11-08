@@ -887,7 +887,7 @@ void map_parser::parse_symbolizer_base(symbolizer_base &sym, xml_node const &pt)
 
     optional<boolean> clip = pt.get_opt_attr<boolean>("clip");
     if (clip) put<bool>(sym, keys::clip, *clip);
-
+    else put<bool>(sym, keys::clip, false);
     // simplify algorithm
     optional<std::string> simplify_algorithm_name = pt.get_opt_attr<std::string>("simplify-algorithm");
     if (simplify_algorithm_name)
@@ -1197,11 +1197,13 @@ void map_parser::parse_text_symbolizer(rule & rule, xml_node const& sym)
             ensure_font_face(placement_finder->defaults.format.face_name);
         }
 
-        text_symbolizer text_symbol; //text_symbolizer(placement_finder);
+        text_symbolizer text_symbol;
         parse_symbolizer_base(text_symbol, sym);
-        optional<halo_rasterizer_e> halo_rasterizer = sym.get_opt_attr<halo_rasterizer_e>("halo-rasterizer");
-        if (halo_rasterizer) put<value_integer>(text_symbol, keys::halo_rasterizer, *halo_rasterizer);
-        rule.append(text_symbol);
+        put<text_placements_ptr>(text_symbol, keys::text_placements_, placement_finder);
+        optional<halo_rasterizer_e> halo_rasterizer_ = sym.get_opt_attr<halo_rasterizer_e>("halo-rasterizer");
+        if (halo_rasterizer_) put<value_integer>(text_symbol, keys::halo_rasterizer, *halo_rasterizer_);
+        else put<value_integer>(text_symbol, keys::halo_rasterizer, HALO_RASTERIZER_FULL);
+        rule.append(std::move(text_symbol));
     }
     catch (config_error const& ex)
     {
@@ -1257,13 +1259,8 @@ void map_parser::parse_shield_symbolizer(rule & rule, xml_node const& sym)
 
         // text-opacity
         // TODO: Could be problematic because it is named opacity in TextSymbolizer but opacity has a diffrent meaning here.
-        optional<double> text_opacity =
-            sym.get_opt_attr<double>("text-opacity");
-        if (text_opacity)
-        {
-            put(shield_symbol, keys::text_opacity, *text_opacity);
-        }
-
+        optional<double> text_opacity = sym.get_attr<double>("text-opacity", 1.0);
+        put(shield_symbol, keys::text_opacity, text_opacity);
         // unlock_image
         optional<boolean> unlock_image =
             sym.get_opt_attr<boolean>("unlock-image");
@@ -1305,7 +1302,7 @@ void map_parser::parse_shield_symbolizer(rule & rule, xml_node const& sym)
         ensure_exists(file);
         put(shield_symbol, keys::filename, parse_path(file, sym.get_tree().path_expr_grammar));
         parse_symbolizer_base(shield_symbol, sym);
-        rule.append(shield_symbol);
+        rule.append(std::move(shield_symbol));
     }
     catch (config_error const& ex)
     {
@@ -1444,7 +1441,7 @@ void map_parser::parse_polygon_symbolizer(rule & rule, xml_node const & sym)
         if (gamma_method) put<value_integer>(poly_sym, keys::gamma_method, *gamma_method);
 
         parse_symbolizer_base(poly_sym, sym);
-        rule.append(poly_sym);
+        rule.append(std::move(poly_sym));
     }
     catch (config_error const& ex)
     {
@@ -1470,7 +1467,7 @@ void map_parser::parse_building_symbolizer(rule & rule, xml_node const & sym)
         if (height) put(building_sym, keys::height, *height);
 
         parse_symbolizer_base(building_sym, sym);
-        rule.append(building_sym);
+        rule.append(std::move(building_sym));
     }
     catch (config_error const& ex)
     {
@@ -1564,7 +1561,7 @@ void map_parser::parse_raster_symbolizer(rule & rule, xml_node const & sym)
         //       raster_sym.set_colorizer(colorizer);
         // }
         parse_symbolizer_base(raster_sym, sym);
-        rule.append(raster_sym);
+        rule.append(std::move(raster_sym));
     }
     catch (config_error const& ex)
     {

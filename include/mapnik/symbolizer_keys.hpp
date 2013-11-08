@@ -70,7 +70,8 @@ enum keys
     smooth,
     simplify_algorithm,
     simplify_tolerance,
-    halo_rasterizer
+    halo_rasterizer,
+    text_placements_
 };
 
 }

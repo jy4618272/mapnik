@@ -66,7 +66,7 @@ text_symbolizer_helper<FaceManagerT, DetectorT>::text_symbolizer_helper(symboliz
     {
         initialize_geometries();
         if (!geometries_to_process_.size()) return;
-        //placement_ = sym_.get_placement_options()->get_placement_info(scale_factor);
+        placement_ = get<text_placements_ptr>(sym_, keys::text_placements_)->get_placement_info(scale_factor);
         next_placement();
         initialize_points();
     }
@@ -81,7 +81,7 @@ bool text_symbolizer_helper<FaceManagerT, DetectorT>::next()
     if (!placement_valid_) return false;
     if (point_placement_)
         return next_point_placement();
-    else if (get<bool>(sym_, keys::clip))
+    else if (get<bool>(sym_, keys::clip, feature_))
         return next_line_placement_clipped();
     else
         return next_line_placement();
@@ -166,7 +166,7 @@ bool text_symbolizer_helper<FaceManagerT, DetectorT>::next_line_placement_clippe
             return true;
         }
         //No placement for this geometry. Keep it in geometries_to_process_ for next try.
-        geo_itr_++;
+        ++geo_itr_;
     }
     return false;
 }
@@ -176,6 +176,7 @@ bool text_symbolizer_helper<FaceManagerT, DetectorT>::next_point_placement()
 {
     while (!points_.empty())
     {
+
         if (point_itr_ == points_.end())
         {
             //Just processed the last point. Try next placement.
@@ -215,7 +216,7 @@ void text_symbolizer_helper<FaceManagerT, DetectorT>::initialize_geometries()
 {
     bool largest_box_only = false;
     std::size_t num_geom = feature_.num_geometries();
-    /*
+
     for (std::size_t i = 0; i < num_geom; ++i)
     {
         geometry_type const& geom = feature_.get_geometry(i);
@@ -223,19 +224,20 @@ void text_symbolizer_helper<FaceManagerT, DetectorT>::initialize_geometries()
         // don't bother with empty geometries
         if (geom.size() == 0) continue;
 
-        geometry_type::types type = geom.type();
-        if (type == geometry_type::types::Polygon)
-        {
-            largest_box_only = false;// FIXME sym_.largest_bbox_only();
-            if (sym_.get_minimum_path_length() > 0)
-            {
-                box2d<double> gbox = t_.forward(geom.envelope(), prj_trans_);
-                if (gbox.width() < sym_.get_minimum_path_length())
-                {
-                    continue;
-                }
-            }
-        }
+        // FIXME
+        //geometry_type::types type = geom.type();
+        //if (type == geometry_type::types::Polygon)
+        //{
+        //    largest_box_only = false;// FIXME sym_.largest_bbox_only();
+        //    if (sym_.get_minimum_path_length() > 0)
+        //    {
+        //       box2d<double> gbox = t_.forward(geom.envelope(), prj_trans_);
+        //       if (gbox.width() < sym_.get_minimum_path_length())
+        //       {
+        //           continue;
+        //       }
+        //   }
+        //}
         // TODO - calculate length here as well
         geometries_to_process_.push_back(const_cast<geometry_type*>(&geom));
     }
@@ -246,7 +248,7 @@ void text_symbolizer_helper<FaceManagerT, DetectorT>::initialize_geometries()
         geo_itr_ = geometries_to_process_.begin();
         geometries_to_process_.erase(++geo_itr_,geometries_to_process_.end());
     }
-    */
+
     geo_itr_ = geometries_to_process_.begin();
 }
 
@@ -436,7 +438,7 @@ bool shield_symbolizer_helper<FaceManagerT, DetectorT>::next_line_placement()
                       -0.5 * marker_ext_.height() - pos.second,
                       0.5 * marker_ext_.width()  - pos.first,
                       0.5 * marker_ext_.height() - pos.second));
-    if ( get<bool>(sym_, keys::clip))
+    if ( get<bool>(sym_, keys::clip, feature_))
     {
         return text_symbolizer_helper<FaceManagerT, DetectorT>::next_line_placement_clipped();
     }

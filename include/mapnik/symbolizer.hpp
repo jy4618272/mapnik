@@ -34,6 +34,8 @@
 #include <mapnik/parse_path.hpp>
 #include <mapnik/color.hpp>
 #include <mapnik/symbolizer_keys.hpp>
+#include <mapnik/text_placements/base.hpp>
+#include <mapnik/text_placements/dummy.hpp>
 // stl
 #include <memory>
 #include <vector>
@@ -64,7 +66,8 @@ struct  MAPNIK_DECL symbolizer_base
                            mapnik::color,
                            mapnik::expression_ptr,
                            mapnik::path_expression_ptr,
-                           mapnik::transform_type> value_type;
+                           mapnik::transform_type,
+                           mapnik::text_placements_ptr> value_type;
     typedef mapnik::keys key_type;
     typedef std::map<key_type, value_type> cont_type;
 //symbolizer_base() {}

@@ -537,7 +537,6 @@ box2d<double> text_renderer<T>::prepare_glyphs(text_path const& path)
     FT_BBox bbox;
     bbox.xMin = bbox.yMin = 32000;  // Initialize these so we can tell if we
     bbox.xMax = bbox.yMax = -32000; // properly grew the bbox later
-
     for (std::size_t i = 0; i < path.num_nodes(); ++i)
     {
         char_info_ptr c;
@@ -557,7 +556,6 @@ box2d<double> text_renderer<T>::prepare_glyphs(text_path const& path)
 
         face_set_ptr faces = font_manager_.get_face_set(c->format->face_name, c->format->fontset);
         faces->set_character_sizes(c->format->text_size*scale_factor_);
-
         glyph_ptr glyph = faces->get_glyph(unsigned(c->c));
         FT_Face face = glyph->get_face()->get_face();
 
@@ -664,7 +662,6 @@ void text_renderer<T>::render(pixel_position const& pos)
     //render actual text
     for (itr = glyphs_.begin(); itr != glyphs_.end(); ++itr)
     {
-
         FT_Glyph_Transform(itr->image,0,&start);
 
         error = FT_Glyph_To_Bitmap( &(itr->image),FT_RENDER_MODE_NORMAL,0,1);
