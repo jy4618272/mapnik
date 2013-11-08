@@ -117,13 +117,13 @@ struct symbolizer_attributes : public boost::static_visitor<>
     void operator () (text_symbolizer const& sym)
     {
         // FIXME
-        //expression_set::const_iterator it;
-        //expression_set expressions;
-        //sym.get_placement_options()->add_expressions(expressions);
-        //for (it=expressions.begin(); it != expressions.end(); it++)
-        //{
-        //    if (*it) boost::apply_visitor(f_attr, **it);
-        //}
+        expression_set::const_iterator it;
+        expression_set expressions;
+        get<mapnik::text_placements_ptr>(sym, keys::text_placements_)->add_expressions(expressions);
+        for (it=expressions.begin(); it != expressions.end(); it++)
+        {
+            if (*it) boost::apply_visitor(f_attr, **it);
+        }
         collect_transform(get<mapnik::transform_type>(sym, keys::transform));
     }
 
