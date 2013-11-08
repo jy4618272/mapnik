@@ -30,7 +30,7 @@
 
 namespace mapnik
 {
-
+#if 0
 shield_symbolizer::shield_symbolizer(text_placements_ptr placements)
     : text_symbolizer(placements),
       symbolizer_with_image(),
@@ -83,5 +83,5 @@ position const& shield_symbolizer::get_shield_displacement() const
 {
     return shield_displacement_;
 }
-
+#endif
 }

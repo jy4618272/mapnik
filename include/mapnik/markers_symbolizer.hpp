@@ -56,50 +56,7 @@ enum marker_multi_policy_enum {
 
 DEFINE_ENUM( marker_multi_policy_e, marker_multi_policy_enum );
 
-struct MAPNIK_DECL markers_symbolizer :
-        public symbolizer_with_image, public symbolizer_base
-{
-public:
-    markers_symbolizer();
-    markers_symbolizer(path_expression_ptr const& filename);
-    markers_symbolizer(markers_symbolizer const& rhs);
-
-    void set_width(expression_ptr const& width);
-    expression_ptr const& get_width() const;
-    void set_height(expression_ptr const& height);
-    expression_ptr const& get_height() const;
-    void set_ignore_placement(bool ignore_placement);
-    bool get_ignore_placement() const;
-    void set_allow_overlap(bool overlap);
-    bool get_allow_overlap() const;
-    void set_spacing(double spacing);
-    double get_spacing() const;
-    void set_max_error(double max_error);
-    double get_max_error() const;
-    void set_fill(color const& fill);
-    boost::optional<color> get_fill() const;
-    void set_fill_opacity(float opacity);
-    boost::optional<float> get_fill_opacity() const;
-    void set_stroke(stroke const& stroke);
-    boost::optional<stroke> get_stroke() const;
-    void set_marker_placement(marker_placement_e marker_p);
-    marker_placement_e get_marker_placement() const;
-    void set_marker_multi_policy(marker_multi_policy_e marker_p);
-    marker_multi_policy_e get_marker_multi_policy() const;
-private:
-    expression_ptr width_;
-    expression_ptr height_;
-    bool ignore_placement_;
-    bool allow_overlap_;
-    double spacing_;
-    double max_error_;
-    boost::optional<color> fill_;
-    boost::optional<float> fill_opacity_;
-    boost::optional<float> opacity_;
-    boost::optional<stroke> stroke_;
-    marker_placement_e marker_p_;
-    marker_multi_policy_e marker_mp_;
-};
+struct MAPNIK_DECL markers_symbolizer : symbolizer_base {};
 
 }
 

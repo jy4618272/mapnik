@@ -46,7 +46,7 @@ static const char * marker_multi_policy_strings[] = {
 };
 
 IMPLEMENT_ENUM( marker_multi_policy_e, marker_multi_policy_strings )
-
+#if 0
 markers_symbolizer::markers_symbolizer()
     : symbolizer_with_image(parse_path("shape://ellipse")),
       symbolizer_base(),
@@ -199,5 +199,6 @@ marker_multi_policy_e markers_symbolizer::get_marker_multi_policy() const
 {
     return marker_mp_;
 }
+#endif
 
 }

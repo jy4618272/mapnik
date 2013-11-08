@@ -171,7 +171,6 @@ source = Split(
     polygon_pattern_symbolizer.cpp
     polygon_symbolizer.cpp
     rule.cpp
-    save_map.cpp
     shield_symbolizer.cpp
     text_symbolizer.cpp
     wkb.cpp

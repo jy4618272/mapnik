@@ -57,6 +57,7 @@ void agg_renderer<T>::process(polygon_pattern_symbolizer const& sym,
                               mapnik::feature_impl & feature,
                               proj_transform const& prj_trans)
 {
+#if 0
     typedef agg::conv_clip_polygon<geometry_type> clipped_geometry_type;
     typedef coord_transform<CoordTransform,clipped_geometry_type> path_type;
 
@@ -169,6 +170,7 @@ void agg_renderer<T>::process(polygon_pattern_symbolizer const& sym,
     agg::scanline_u8 sl;
     ras_ptr->filling_rule(agg::fill_even_odd);
     agg::render_scanlines(*ras_ptr, sl, rp);
+#endif
 }
 
 

@@ -71,7 +71,7 @@ void raster_symbolizer::set_mode(std::string const& mode)
     if (mode == "normal")
     {
         MAPNIK_LOG_ERROR(raster_symbolizer) << "converting 'mode=normal' to 'comp-op:src_over'";
-        this->set_comp_op(src_over);
+//this->set_comp_op(src_over);
     }
     else
     {
@@ -80,7 +80,7 @@ void raster_symbolizer::set_mode(std::string const& mode)
         if (comp_op)
         {
             MAPNIK_LOG_ERROR(raster_symbolizer) << "converting 'mode:" << mode << "' to 'comp-op:" + *comp_op_to_string(*comp_op) + "'";
-            this->set_comp_op(*comp_op);
+//            this->set_comp_op(*comp_op);
         }
         else
         {
@@ -190,4 +190,3 @@ boost::optional<bool> raster_symbolizer::premultiplied() const
 }
 
 }
-

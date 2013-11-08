@@ -24,33 +24,14 @@
 #define MAPNIK_POLYGON_SYMBOLIZER_HPP
 
 // mapnik
-#include <mapnik/color.hpp>
+//#include <mapnik/color.hpp>
 #include <mapnik/config.hpp>
 #include <mapnik/symbolizer.hpp>
-#include <mapnik/gamma_method.hpp>
+//#include <mapnik/gamma_method.hpp>
 
 namespace mapnik
 {
-
-struct MAPNIK_DECL polygon_symbolizer : public symbolizer_base
-{
-    polygon_symbolizer();
-    explicit polygon_symbolizer(color const& fill);
-    color const& get_fill() const;
-    void set_fill(color const& fill);
-    void set_opacity(double opacity);
-    double get_opacity() const;
-    void set_gamma(double gamma);
-    double get_gamma() const;
-    void set_gamma_method(gamma_method_e gamma_method);
-    gamma_method_e get_gamma_method() const;
-private:
-    color fill_;
-    double opacity_;
-    double gamma_;
-    gamma_method_e gamma_method_;
-};
-
+struct MAPNIK_DECL polygon_symbolizer : public symbolizer_base {};
 }
 
 #endif // MAPNIK_POLYGON_SYMBOLIZER_HPP

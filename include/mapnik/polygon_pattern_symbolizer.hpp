@@ -24,11 +24,9 @@
 #define MAPNIK_POLYGON_PATTERN_SYMBOLIZER_HPP
 
 // mapnik
-#include <mapnik/color.hpp>
 #include <mapnik/config.hpp>
 #include <mapnik/symbolizer.hpp>
 #include <mapnik/enumeration.hpp>
-#include <mapnik/gamma_method.hpp>
 
 namespace mapnik
 {
@@ -41,22 +39,8 @@ enum pattern_alignment_enum {
 
 DEFINE_ENUM( pattern_alignment_e, pattern_alignment_enum );
 
-struct MAPNIK_DECL polygon_pattern_symbolizer :
-        public symbolizer_with_image, public symbolizer_base
-{
-    polygon_pattern_symbolizer(path_expression_ptr file);
-    polygon_pattern_symbolizer(polygon_pattern_symbolizer const& rhs);
-    pattern_alignment_e get_alignment() const;
-    void set_alignment(pattern_alignment_e align);
-    void set_gamma(double gamma);
-    double get_gamma() const;
-    void set_gamma_method(gamma_method_e gamma_method);
-    gamma_method_e get_gamma_method() const;
-private:
-    pattern_alignment_e alignment_;
-    double gamma_;
-    gamma_method_e gamma_method_;
-};
+struct MAPNIK_DECL polygon_pattern_symbolizer : symbolizer_base {};
+
 }
 
 #endif // MAPNIK_POLYGON_PATTERN_SYMBOLIZER_HPP

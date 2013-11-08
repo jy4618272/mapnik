@@ -25,7 +25,7 @@
 
 namespace mapnik
 {
-
+#if 0
 line_pattern_symbolizer::line_pattern_symbolizer(path_expression_ptr file)
     : symbolizer_with_image(file), symbolizer_base(), offset_(0.0) {}
 
@@ -41,5 +41,5 @@ void line_pattern_symbolizer::set_offset(double offset)
 {
     offset_=offset;
 }
-
+#endif
 }

@@ -38,18 +38,7 @@ enum debug_symbolizer_mode_enum {
 
 DEFINE_ENUM( debug_symbolizer_mode_e, debug_symbolizer_mode_enum );
 
-struct MAPNIK_DECL debug_symbolizer :
-        public symbolizer_base
-{
-    debug_symbolizer();
-    debug_symbolizer(debug_symbolizer const& rhs);
-    debug_symbolizer_mode_e get_mode() const;
-    void set_mode(debug_symbolizer_mode_e mode);
-
-private:
-    debug_symbolizer_mode_e mode_;
-
-};
+struct MAPNIK_DECL debug_symbolizer : symbolizer_base {};
 
 }
 

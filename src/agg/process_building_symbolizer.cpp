@@ -54,6 +54,7 @@ void agg_renderer<T>::process(building_symbolizer const& sym,
                               mapnik::feature_impl & feature,
                               proj_transform const& prj_trans)
 {
+#if 0
     typedef coord_transform<CoordTransform,geometry_type> path_type;
     typedef agg::renderer_base<agg::pixfmt_rgba32_pre> ren_base;
     typedef agg::renderer_scanline_aa_solid<ren_base> renderer;
@@ -174,6 +175,7 @@ void agg_renderer<T>::process(building_symbolizer const& sym,
 
         }
     }
+#endif
 }
 
 template void agg_renderer<image_32>::process(building_symbolizer const&,

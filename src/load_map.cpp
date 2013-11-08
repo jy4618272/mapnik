@@ -106,7 +106,7 @@ private:
     void parse_debug_symbolizer(rule & rule, xml_node const& sym);
 
     bool parse_raster_colorizer(raster_colorizer_ptr const& rc, xml_node const& node);
-    bool parse_stroke(stroke & strk, xml_node const & sym);
+    bool parse_stroke(symbolizer_base & symbol, xml_node const & sym);
 
     void ensure_font_face(std::string const& face_name);
     void find_unused_nodes(xml_node const& root);
@@ -864,7 +864,7 @@ void map_parser::parse_symbolizer_base(symbolizer_base &sym, xml_node const &pt)
         optional<composite_mode_e> comp_op = comp_op_from_string(*comp_op_name);
         if (comp_op)
         {
-            sym.set_comp_op(*comp_op);
+            put<value_integer>(sym, "comp-op", *comp_op);
         }
         else
         {
@@ -882,11 +882,11 @@ void map_parser::parse_symbolizer_base(symbolizer_base &sym, xml_node const &pt)
             ss += *geometry_transform_wkt + "', expected transform attribute";
             throw config_error(ss);
         }
-        sym.set_transform(tl);
+        put<mapnik::transform_type>(sym, "transform", tl);
     }
 
     optional<boolean> clip = pt.get_opt_attr<boolean>("clip");
-    if (clip) sym.set_clip(*clip);
+    if (clip) put<bool>(sym, "clip", *clip);
 
     // simplify algorithm
     optional<std::string> simplify_algorithm_name = pt.get_opt_attr<std::string>("simplify-algorithm");
@@ -895,7 +895,7 @@ void map_parser::parse_symbolizer_base(symbolizer_base &sym, xml_node const &pt)
         optional<simplify_algorithm_e> simplify_algorithm = simplify_algorithm_from_string(*simplify_algorithm_name);
         if (simplify_algorithm)
         {
-            sym.set_simplify_algorithm(*simplify_algorithm);
+            put<value_integer>(sym, "simplify-algorithm", *simplify_algorithm);
         }
         else
         {
@@ -905,11 +905,11 @@ void map_parser::parse_symbolizer_base(symbolizer_base &sym, xml_node const &pt)
 
     // simplify value
     optional<double> simplify_tolerance = pt.get_opt_attr<double>("simplify");
-    if (simplify_tolerance) sym.set_simplify_tolerance(*simplify_tolerance);
+    if (simplify_tolerance) put<double>(sym, "simplify-tolerance",*simplify_tolerance);
 
     // smooth value
     optional<double> smooth = pt.get_opt_attr<double>("smooth");
-    if (smooth) sym.set_smooth(*smooth);
+    if (smooth) put<double>(sym, "smooth", *smooth);
 }
 
 void map_parser::parse_point_symbolizer(rule & rule, xml_node const & sym)
@@ -925,19 +925,20 @@ void map_parser::parse_point_symbolizer(rule & rule, xml_node const & sym)
         point_symbolizer symbol;
         if (allow_overlap)
         {
-            symbol.set_allow_overlap(* allow_overlap);
+            put<bool>(symbol, "allow-overlap", *allow_overlap);
         }
         if (opacity)
         {
-            symbol.set_opacity(* opacity);
+            put<double>(symbol, "opacity", *opacity);
         }
         if (ignore_placement)
         {
-            symbol.set_ignore_placement(* ignore_placement);
+            put<bool>(symbol,"ignore-placement", *ignore_placement);
         }
-        point_placement_e placement =
-            sym.get_attr<point_placement_e>("placement", symbol.get_point_placement());
-        symbol.set_point_placement(placement);
+        //FIXME
+        //point_placement_e placement =
+        //    sym.get_attr<point_placement_e>("placement", symbol.get_point_placement());
+        //put<int>(symbol, "placement", *placement);
 
         if (file && !file->empty())
         {
@@ -953,7 +954,7 @@ void map_parser::parse_point_symbolizer(rule & rule, xml_node const & sym)
             *file = ensure_relative_to_xml(file);
             std::string filename = *file;
             ensure_exists(filename);
-            symbol.set_filename( parse_path(filename, sym.get_tree().path_expr_grammar) );
+            put(symbol, "filename", parse_path(filename, sym.get_tree().path_expr_grammar));
 
             optional<std::string> image_transform_wkt = sym.get_opt_attr<std::string>("transform");
             if (image_transform_wkt)
@@ -963,7 +964,7 @@ void map_parser::parse_point_symbolizer(rule & rule, xml_node const & sym)
                 {
                     throw mapnik::config_error("Failed to parse transform: '" + *image_transform_wkt + "'");
                 }
-                symbol.set_image_transform(tl);
+                put(symbol, "image-transform", tl);
             }
         }
         parse_symbolizer_base(symbol, sym);
@@ -1023,15 +1024,15 @@ void map_parser::parse_markers_symbolizer(rule & rule, xml_node const& sym)
         if (!filename.empty())
         {
             ensure_exists(filename);
-            symbol.set_filename( parse_path(filename, sym.get_tree().path_expr_grammar) );
+            put(symbol,"filename", parse_path(filename, sym.get_tree().path_expr_grammar));
         }
 
         // overall opacity to be applied to all paths
         optional<float> opacity = sym.get_opt_attr<float>("opacity");
-        if (opacity) symbol.set_opacity(*opacity);
+        if (opacity) put<double>(symbol, "opacity", *opacity);
 
         optional<float> fill_opacity = sym.get_opt_attr<float>("fill-opacity");
-        if (fill_opacity) symbol.set_fill_opacity(*fill_opacity);
+        if (fill_opacity) put<double>(symbol, "fill-opacity",*fill_opacity);
 
         optional<std::string> image_transform_wkt = sym.get_opt_attr<std::string>("transform");
         if (image_transform_wkt)
@@ -1041,41 +1042,38 @@ void map_parser::parse_markers_symbolizer(rule & rule, xml_node const& sym)
             {
                 throw mapnik::config_error("Failed to parse transform: '" + *image_transform_wkt + "'");
             }
-            symbol.set_image_transform(tl);
+            put<transform_type>(symbol, "image-transform", tl);
         }
 
         optional<color> c = sym.get_opt_attr<color>("fill");
-        if (c) symbol.set_fill(*c);
+        if (c) put(symbol, "fill", *c);
 
         optional<double> spacing = sym.get_opt_attr<double>("spacing");
-        if (spacing) symbol.set_spacing(*spacing);
+        if (spacing) put(symbol,"spacing", *spacing);
 
         optional<double> max_error = sym.get_opt_attr<double>("max-error");
-        if (max_error) symbol.set_max_error(*max_error);
+        if (max_error) put(symbol,"max-error", *max_error);
 
         optional<boolean> allow_overlap = sym.get_opt_attr<boolean>("allow-overlap");
-        if (allow_overlap) symbol.set_allow_overlap(*allow_overlap);
+        if (allow_overlap) put<bool>(symbol, "allow-overlap", *allow_overlap);
 
         optional<boolean> ignore_placement = sym.get_opt_attr<boolean>("ignore-placement");
-        if (ignore_placement) symbol.set_ignore_placement(*ignore_placement);
+        if (ignore_placement) put<bool>(symbol, "ignore-placement", *ignore_placement);
 
         optional<expression_ptr> width = sym.get_opt_attr<expression_ptr>("width");
-        if (width) symbol.set_width(*width);
+        if (width) put(symbol, "width", *width );
 
         optional<expression_ptr> height = sym.get_opt_attr<expression_ptr>("height");
-        if (height) symbol.set_height(*height);
+        if (height) put(symbol, "height", *height);
 
-        stroke strk;
-        if (parse_stroke(strk,sym))
-        {
-            symbol.set_stroke(strk);
-        }
+        parse_stroke(symbol,sym);
 
-        marker_placement_e placement = sym.get_attr<marker_placement_e>("placement",symbol.get_marker_placement());
-        symbol.set_marker_placement(placement);
+        // FIXME
+        //marker_placement_e placement = sym.get_attr<marker_placement_e>("placement",symbol.get_marker_placement());
+        //put(symbol, "placement", placement);
 
-        marker_multi_policy_e mpolicy = sym.get_attr<marker_multi_policy_e>("multi-policy",symbol.get_marker_multi_policy());
-        symbol.set_marker_multi_policy(mpolicy);
+        //marker_multi_policy_e mpolicy = sym.get_attr<marker_multi_policy_e>("multi-policy",symbol.get_marker_multi_policy());
+        //put(symbol, "multi-policy", mpolicy);
 
         parse_symbolizer_base(symbol, sym);
         rule.append(symbol);
@@ -1110,11 +1108,12 @@ void map_parser::parse_line_pattern_symbolizer(rule & rule, xml_node const & sym
 
         file = ensure_relative_to_xml(file);
         ensure_exists(file);
-        line_pattern_symbolizer symbol( parse_path(file, sym.get_tree().path_expr_grammar) );
+        line_pattern_symbolizer symbol;
+        put(symbol, "file", parse_path(file, sym.get_tree().path_expr_grammar));
 
         // offset value
         optional<double> offset = sym.get_opt_attr<double>("offset");
-        if (offset) symbol.set_offset(*offset);
+        if (offset) put(symbol, "offset", *offset);
 
         parse_symbolizer_base(symbol, sym);
         rule.append(symbol);
@@ -1151,23 +1150,24 @@ void map_parser::parse_polygon_pattern_symbolizer(rule & rule,
 
         file = ensure_relative_to_xml(file);
         ensure_exists(file);
-        polygon_pattern_symbolizer symbol( parse_path(file, sym.get_tree().path_expr_grammar) );
+        polygon_pattern_symbolizer symbol;
+        put(symbol, "filename", parse_path(file, sym.get_tree().path_expr_grammar));
 
         // pattern alignment
         pattern_alignment_e p_alignment = sym.get_attr<pattern_alignment_e>("alignment",LOCAL_ALIGNMENT);
-        symbol.set_alignment(p_alignment);
+        put<value_integer>(symbol, "alignment", p_alignment);
 
         // opacity
         optional<float> opacity = sym.get_opt_attr<float>("opacity");
-        if (opacity) symbol.set_opacity(*opacity);
+        if (opacity) put<double>(symbol, "opacity", *opacity);
 
         // gamma
         optional<double> gamma = sym.get_opt_attr<double>("gamma");
-        if (gamma)  symbol.set_gamma(*gamma);
+        if (gamma)  put(symbol, "gamma", *gamma);
 
         // gamma method
         optional<gamma_method_e> gamma_method = sym.get_opt_attr<gamma_method_e>("gamma-method");
-        if (gamma_method) symbol.set_gamma_method(*gamma_method);
+        if (gamma_method) put<value_integer>(symbol, "gamma-method", *gamma_method);
 
         parse_symbolizer_base(symbol, sym);
         rule.append(symbol);
@@ -1197,11 +1197,10 @@ void map_parser::parse_text_symbolizer(rule & rule, xml_node const& sym)
             ensure_font_face(placement_finder->defaults.format.face_name);
         }
 
-        text_symbolizer text_symbol = text_symbolizer(placement_finder);
+        text_symbolizer text_symbol; //text_symbolizer(placement_finder);
         parse_symbolizer_base(text_symbol, sym);
         optional<halo_rasterizer_e> halo_rasterizer = sym.get_opt_attr<halo_rasterizer_e>("halo-rasterizer");
-        if (halo_rasterizer) text_symbol.set_halo_rasterizer(*halo_rasterizer);
-
+        if (halo_rasterizer) put<value_integer>(text_symbol, "halo-rasterizer", *halo_rasterizer);
         rule.append(text_symbol);
     }
     catch (config_error const& ex)
@@ -1229,7 +1228,7 @@ void map_parser::parse_shield_symbolizer(rule & rule, xml_node const& sym)
             ensure_font_face(placement_finder->defaults.format.face_name);
         }
 
-        shield_symbolizer shield_symbol = shield_symbolizer(placement_finder);
+        shield_symbolizer shield_symbol;// = shield_symbolizer(placement_finder);
 
         optional<std::string> image_transform_wkt = sym.get_opt_attr<std::string>("transform");
         if (image_transform_wkt)
@@ -1239,19 +1238,21 @@ void map_parser::parse_shield_symbolizer(rule & rule, xml_node const& sym)
             {
                 throw mapnik::config_error("Failed to parse transform: '" + *image_transform_wkt + "'");
             }
-            shield_symbol.set_image_transform(tl);
+            put(shield_symbol, "image-transform", tl);
         }
 
         // shield displacement
         double shield_dx = sym.get_attr("shield-dx", 0.0);
         double shield_dy = sym.get_attr("shield-dy", 0.0);
-        shield_symbol.set_shield_displacement(shield_dx,shield_dy);
+        //shield_symbol.set_shield_displacement(shield_dx,shield_dy);
+        put(shield_symbol, "shield-dx", shield_dx);
+        put(shield_symbol, "shield-dy", shield_dy);
 
         // opacity
         optional<float> opacity = sym.get_opt_attr<float>("opacity");
         if (opacity)
         {
-            shield_symbol.set_opacity(*opacity);
+            put<double>(shield_symbol, "opacity" , *opacity);
         }
 
         // text-opacity
@@ -1260,7 +1261,7 @@ void map_parser::parse_shield_symbolizer(rule & rule, xml_node const& sym)
             sym.get_opt_attr<double>("text-opacity");
         if (text_opacity)
         {
-            shield_symbol.set_text_opacity(* text_opacity);
+            put(shield_symbol, "text-opacity", *text_opacity);
         }
 
         // unlock_image
@@ -1268,7 +1269,7 @@ void map_parser::parse_shield_symbolizer(rule & rule, xml_node const& sym)
             sym.get_opt_attr<boolean>("unlock-image");
         if (unlock_image)
         {
-            shield_symbol.set_unlock_image(* unlock_image);
+            put<bool>(shield_symbol, "unlock-image", * unlock_image);
         }
 
         std::string file = sym.get_attr<std::string>("file");
@@ -1295,13 +1296,14 @@ void map_parser::parse_shield_symbolizer(rule & rule, xml_node const& sym)
         if (no_text)
         {
             MAPNIK_LOG_ERROR(shield_symbolizer) << "'no-text' is deprecated and will be removed in Mapnik 3.x, to create a ShieldSymbolizer without text just provide an element like: \"<ShieldSymbolizer ... />' '</>\"";
-            if (*no_text)
-                shield_symbol.set_name(parse_expression("' '"));
+            // FIXME
+//            if (*no_text)
+            //              put(shield_symbol, "no-text", set_name(parse_expression("' '"));
         }
 
         file = ensure_relative_to_xml(file);
         ensure_exists(file);
-        shield_symbol.set_filename( parse_path(file, sym.get_tree().path_expr_grammar) );
+        put(shield_symbol, "filename", parse_path(file, sym.get_tree().path_expr_grammar));
         parse_symbolizer_base(shield_symbol, sym);
         rule.append(shield_symbol);
     }
@@ -1312,7 +1314,7 @@ void map_parser::parse_shield_symbolizer(rule & rule, xml_node const& sym)
     }
 }
 
-bool map_parser::parse_stroke(stroke & strk, xml_node const & sym)
+bool map_parser::parse_stroke(symbolizer_base & symbol, xml_node const & sym)
 {
     bool result = false;
 
@@ -1321,7 +1323,7 @@ bool map_parser::parse_stroke(stroke & strk, xml_node const & sym)
     if (c)
     {
         result = true;
-        strk.set_color(*c);
+        put(symbol, "stroke", *c);
     }
 
     // stroke-width
@@ -1329,7 +1331,7 @@ bool map_parser::parse_stroke(stroke & strk, xml_node const & sym)
     if (width)
     {
         result = true;
-        strk.set_width(*width);
+        put(symbol, "stroke-width", *width);
     }
 
     // stroke-opacity
@@ -1337,30 +1339,31 @@ bool map_parser::parse_stroke(stroke & strk, xml_node const & sym)
     if (opacity)
     {
         result = true;
-        strk.set_opacity(*opacity);
+        put(symbol, "stroke-opacity", *opacity);
     }
 
     // stroke-linejoin
     optional<line_join_e> line_join = sym.get_opt_attr<line_join_e>("stroke-linejoin");
-    if (line_join) strk.set_line_join(*line_join);
+    if (line_join) put<value_integer>(symbol, "stroke-linejoin", *line_join);
 
     // stroke-linecap
     optional<line_cap_e> line_cap = sym.get_opt_attr<line_cap_e>("stroke-linecap");
-    if (line_cap) strk.set_line_cap(*line_cap);
+    if (line_cap) put<value_integer>(symbol, "stroke-linecap", *line_cap);
 
     // stroke-gamma
     optional<double> gamma = sym.get_opt_attr<double>("stroke-gamma");
-    if (gamma) strk.set_gamma(*gamma);
+    if (gamma) put(symbol, "stroke-gamma", *gamma);
 
     // stroke-gamma-method
     optional<gamma_method_e> gamma_method = sym.get_opt_attr<gamma_method_e>("stroke-gamma-method");
-    if (gamma_method) strk.set_gamma_method(*gamma_method);
+    if (gamma_method) put<value_integer>(symbol, "stroke-gamma-method", *gamma_method);
 
     // stroke-dashoffset
     optional<double> dash_offset = sym.get_opt_attr<double>("stroke-dashoffset");
-    if (dash_offset) strk.set_dash_offset(*dash_offset);
+    if (dash_offset) put(symbol,"stroke-dashoffset", *dash_offset);
 
     // stroke-dasharray
+#if 0 // FIXME
     optional<std::string> str = sym.get_opt_attr<std::string>("stroke-dasharray");
     if (str)
     {
@@ -1389,10 +1392,11 @@ bool map_parser::parse_stroke(stroke & strk, xml_node const & sym)
                                "list of floats or 'none' but got '" + (*str) + "'");
         }
     }
+#endif
 
     // stroke-miterlimit
     optional<double> miterlimit = sym.get_opt_attr<double>("stroke-miterlimit");
-    if (miterlimit) strk.set_miterlimit(*miterlimit);
+    if (miterlimit) put(symbol, "stroke-miterlimit", *miterlimit);
     return result;
 }
 
@@ -1400,16 +1404,15 @@ void map_parser::parse_line_symbolizer(rule & rule, xml_node const & sym)
 {
     try
     {
-        stroke strk;
-        parse_stroke(strk,sym);
-        line_symbolizer symbol = line_symbolizer(strk);
+        line_symbolizer symbol;// = line_symbolizer(strk);
+        parse_stroke(symbol, sym);
 
         // offset value
         optional<double> offset = sym.get_opt_attr<double>("offset");
-        if (offset) symbol.set_offset(*offset);
+        if (offset) put(symbol, "offset", *offset);
 
         line_rasterizer_e rasterizer = sym.get_attr<line_rasterizer_e>("rasterizer", RASTERIZER_FULL);
-        symbol.set_rasterizer(rasterizer);
+        put<value_integer>(symbol, "rasterizer", rasterizer);
 
         parse_symbolizer_base(symbol, sym);
         rule.append(symbol);
@@ -1429,16 +1432,21 @@ void map_parser::parse_polygon_symbolizer(rule & rule, xml_node const & sym)
         polygon_symbolizer poly_sym;
         // fill
         optional<color> fill = sym.get_opt_attr<color>("fill");
-        if (fill) poly_sym.set_fill(*fill);
+        if (fill)
+        {
+            std::cerr << *fill << std::endl;
+            put<mapnik::color>(poly_sym, "fill", *fill);
+        }
         // fill-opacity
-        optional<double> opacity = sym.get_opt_attr<double>("fill-opacity");
-        if (opacity) poly_sym.set_opacity(*opacity);
+        //optional<double> opacity = sym.get_opt_attr<double>("fill-opacity");
+        //if (opacity) put(poly_sym, "fill-opacity", *opacity);
+        put(poly_sym, "fill-opacity", sym.get_attr<double>("fill-opacity", 1.0));
         // gamma
         optional<double> gamma = sym.get_opt_attr<double>("gamma");
-        if (gamma)  poly_sym.set_gamma(*gamma);
+        if (gamma)  put(poly_sym, "gamma", *gamma);
         // gamma method
         optional<gamma_method_e> gamma_method = sym.get_opt_attr<gamma_method_e>("gamma-method");
-        if (gamma_method) poly_sym.set_gamma_method(*gamma_method);
+        if (gamma_method) put<value_integer>(poly_sym, "gamma-method", *gamma_method);
 
         parse_symbolizer_base(poly_sym, sym);
         rule.append(poly_sym);
@@ -1458,10 +1466,10 @@ void map_parser::parse_building_symbolizer(rule & rule, xml_node const & sym)
 
         // fill
         optional<color> fill = sym.get_opt_attr<color>("fill");
-        if (fill) building_sym.set_fill(*fill);
+        if (fill) put(building_sym, "fill", *fill);
         // fill-opacity
         optional<double> opacity = sym.get_opt_attr<double>("fill-opacity");
-        if (opacity) building_sym.set_opacity(*opacity);
+        if (opacity) put(building_sym, "fill-opacity", *opacity);
         // height
         optional<expression_ptr> height = sym.get_opt_attr<expression_ptr>("height");
         if (height) building_sym.set_height(*height);
@@ -1492,7 +1500,7 @@ void map_parser::parse_raster_symbolizer(rule & rule, xml_node const & sym)
                 MAPNIK_LOG_ERROR(raster_symbolizer) << "'mode' values using \"_\" are deprecated and will be removed in Mapnik 3.x, use \"-\"instead";
                 boost::algorithm::replace_all(mode_string,"_","-");
             }
-            raster_sym.set_mode(mode_string);
+            put(raster_sym, "mode", mode_string);
         }
 
         // scaling
@@ -1503,14 +1511,14 @@ void map_parser::parse_raster_symbolizer(rule & rule, xml_node const & sym)
             if (scaling_method == "fast")
             {
                 MAPNIK_LOG_ERROR(raster_symbolizer) << "'scaling' value of 'fast' is deprecated and will be removed in Mapnik 3.x, use 'near' with Mapnik >= 2.1.x";
-                raster_sym.set_scaling_method(SCALING_NEAR);
+                put<value_integer>(raster_sym, "scaling", SCALING_NEAR);
             }
             else
             {
                 boost::optional<scaling_method_e> method = scaling_method_from_string(scaling_method);
                 if (method)
                 {
-                    raster_sym.set_scaling_method(*method);
+                    put<value_integer>(raster_sym, "scaling", *method);
                 }
                 else
                 {
@@ -1521,43 +1529,45 @@ void map_parser::parse_raster_symbolizer(rule & rule, xml_node const & sym)
 
         // opacity
         optional<float> opacity = sym.get_opt_attr<float>("opacity");
-        if (opacity) raster_sym.set_opacity(*opacity);
+        if (opacity) put<double>(raster_sym, "opacity", *opacity);
 
         // filter factor
         optional<double> filter_factor = sym.get_opt_attr<double>("filter-factor");
-        if (filter_factor) raster_sym.set_filter_factor(*filter_factor);
+        if (filter_factor) put(raster_sym, "filter-factor", *filter_factor);
 
         // mesh-size
         optional<unsigned> mesh_size = sym.get_opt_attr<unsigned>("mesh-size");
-        if (mesh_size) raster_sym.set_mesh_size(*mesh_size);
+        if (mesh_size) put<value_integer>(raster_sym, "mesh-size", *mesh_size);
 
         // premultiplied status of image
         optional<boolean> premultiplied = sym.get_opt_attr<boolean>("premultiplied");
-        if (premultiplied) raster_sym.set_premultiplied(*premultiplied);
+        if (premultiplied) put<bool>(raster_sym, "premultiplied", *premultiplied);
 
-        xml_node::const_iterator cssIter = sym.begin();
-        xml_node::const_iterator endCss = sym.end();
+        // FIXME
 
-        bool found_colorizer = false;
-        for(; cssIter != endCss; ++cssIter)
-        {
-            if (cssIter->is("RasterColorizer"))
-            {
-                found_colorizer = true;
-                raster_colorizer_ptr colorizer = std::make_shared<raster_colorizer>();
-                raster_sym.set_colorizer(colorizer);
-                if (parse_raster_colorizer(colorizer, *cssIter))
-                    raster_sym.set_colorizer(colorizer);
+        //xml_node::const_iterator cssIter = sym.begin();
+        //xml_node::const_iterator endCss = sym.end();
 
-            }
-        }
+        //bool found_colorizer = false;
+        //for(; cssIter != endCss; ++cssIter)
+        //{
+        //    if (cssIter->is("RasterColorizer"))
+        //    {
+        //        found_colorizer = true;
+        //        raster_colorizer_ptr colorizer = std::make_shared<raster_colorizer>();
+        //        raster_sym.set_colorizer(colorizer);
+        //        if (parse_raster_colorizer(colorizer, *cssIter))
+        //            raster_sym.set_colorizer(colorizer);
+//
+        //           }
+        //}
         // look for properties one level up
-        if (!found_colorizer)
-        {
-            raster_colorizer_ptr colorizer = std::make_shared<raster_colorizer>();
-            if (parse_raster_colorizer(colorizer, sym))
-                raster_sym.set_colorizer(colorizer);
-        }
+        //if (!found_colorizer)
+        //{
+        //   raster_colorizer_ptr colorizer = std::make_shared<raster_colorizer>();
+        //   if (parse_raster_colorizer(colorizer, sym))
+        //       raster_sym.set_colorizer(colorizer);
+        // }
         parse_symbolizer_base(raster_sym, sym);
         rule.append(raster_sym);
     }
@@ -1574,7 +1584,7 @@ void map_parser::parse_debug_symbolizer(rule & rule, xml_node const & sym)
     parse_symbolizer_base(symbol, sym);
     debug_symbolizer_mode_e mode =
         sym.get_attr<debug_symbolizer_mode_e>("mode", DEBUG_SYM_MODE_COLLISION);
-    symbol.set_mode(mode);
+    put<value_integer>(symbol, "mode", mode);
     rule.append(symbol);
 }
 

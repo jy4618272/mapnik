@@ -89,6 +89,7 @@ void  agg_renderer<T>::process(line_pattern_symbolizer const& sym,
                                mapnik::feature_impl & feature,
                                proj_transform const& prj_trans)
 {
+#if 0
     typedef agg::rgba8 color;
     typedef agg::order_rgba order;
     typedef agg::comp_op_adaptor_rgba_pre<color, order> blender_type;
@@ -159,6 +160,7 @@ void  agg_renderer<T>::process(line_pattern_symbolizer const& sym,
             converter.apply(geom);
         }
     }
+#endif
 }
 
 template void agg_renderer<image_32>::process(line_pattern_symbolizer const&,

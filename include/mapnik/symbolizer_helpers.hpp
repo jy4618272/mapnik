@@ -30,6 +30,10 @@
 #include <mapnik/processed_text.hpp>
 #include <mapnik/text_path.hpp>
 
+#include <mapnik/text_placements/base.hpp>
+#include <mapnik/text_placements/dummy.hpp>
+
+
 //boost
 
 
@@ -54,7 +58,7 @@ template <typename FaceManagerT, typename DetectorT>
 class text_symbolizer_helper
 {
 public:
-    text_symbolizer_helper(text_symbolizer const& sym,
+    text_symbolizer_helper(symbolizer_base const& sym,
                            feature_impl const& feature,
                            proj_transform const& prj_trans,
                            unsigned width,
@@ -81,7 +85,7 @@ protected:
     void initialize_points();
 
     //Input
-    text_symbolizer const& sym_;
+    symbolizer_base const& sym_;
     feature_impl const& feature_;
     proj_transform const& prj_trans_;
     CoordTransform const& t_;
@@ -117,7 +121,7 @@ template <typename FaceManagerT, typename DetectorT>
 class shield_symbolizer_helper: public text_symbolizer_helper<FaceManagerT, DetectorT>
 {
 public:
-    shield_symbolizer_helper(shield_symbolizer const& sym,
+    shield_symbolizer_helper(symbolizer_base const& sym,
                              feature_impl const& feature,
                              proj_transform const& prj_trans,
                              unsigned width,
@@ -127,7 +131,7 @@ public:
                              FaceManagerT &font_manager,
                              DetectorT &detector,
                              box2d<double> const& query_extent) :
-        text_symbolizer_helper<FaceManagerT, DetectorT>(sym, feature, prj_trans, width, height, scale_factor, t, font_manager, detector, query_extent),
+    text_symbolizer_helper<FaceManagerT, DetectorT>(sym, feature, prj_trans, width, height, scale_factor, t, font_manager, detector, query_extent),
         sym_(sym)
     {
         this->points_on_line_ = true;
@@ -157,7 +161,7 @@ protected:
     bool next_point_placement();
     bool next_line_placement();
     void init_marker();
-    shield_symbolizer const& sym_;
+    symbolizer_base const& sym_;
     box2d<double> marker_ext_;
     boost::optional<marker_ptr> marker_;
     agg::trans_affine image_transform_;

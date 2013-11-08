@@ -52,6 +52,7 @@ void agg_renderer<T>::process(raster_symbolizer const& sym,
                               mapnik::feature_impl & feature,
                               proj_transform const& prj_trans)
 {
+#if 0
     raster_ptr const& source = feature.get_raster();
     if (source)
     {
@@ -128,6 +129,7 @@ void agg_renderer<T>::process(raster_symbolizer const& sym,
                       start_x, start_y, false);
         }
     }
+#endif
 }
 
 template void agg_renderer<image_32>::process(raster_symbolizer const&,

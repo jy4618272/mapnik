@@ -93,7 +93,7 @@ static const char * text_transform_strings[] = {
 
 IMPLEMENT_ENUM( text_transform_e, text_transform_strings )
 
-
+#if 0
 text_symbolizer::text_symbolizer(text_placements_ptr placements)
 : symbolizer_base(),
     placement_options_(placements),
@@ -490,5 +490,5 @@ void text_symbolizer::set_placement_options(text_placements_ptr placement_option
     placement_options_ = placement_options;
 }
 
-
+#endif
 }

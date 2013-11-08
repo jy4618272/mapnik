@@ -36,7 +36,7 @@ static const char * point_placement_strings[] = {
 };
 
 IMPLEMENT_ENUM( point_placement_e, point_placement_strings )
-
+#if 0
 point_symbolizer::point_symbolizer()
 : symbolizer_with_image(path_expression_ptr(new path_expression)), // FIXME
     symbolizer_base(),
@@ -87,6 +87,5 @@ bool point_symbolizer::get_ignore_placement() const
 {
     return ignore_placement_;
 }
-
+#endif
 }
-

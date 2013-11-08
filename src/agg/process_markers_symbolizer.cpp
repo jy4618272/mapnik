@@ -29,7 +29,7 @@
 #include <mapnik/feature.hpp>
 #include <mapnik/geom_util.hpp>
 #include <mapnik/vertex_converters.hpp>
-#include <mapnik/marker_helpers.hpp>
+//#include <mapnik/marker_helpers.hpp>
 #include <mapnik/marker.hpp>
 #include <mapnik/marker_cache.hpp>
 #include <mapnik/svg/svg_renderer_agg.hpp>
@@ -63,6 +63,7 @@ void agg_renderer<T>::process(markers_symbolizer const& sym,
                               feature_impl & feature,
                               proj_transform const& prj_trans)
 {
+#if 0
     typedef agg::rgba8 color_type;
     typedef agg::order_rgba order_type;
     typedef agg::comp_op_adaptor_rgba_pre<color_type, order_type> blender_type; // comp blender
@@ -232,6 +233,7 @@ void agg_renderer<T>::process(markers_symbolizer const& sym,
             }
         }
     }
+#endif
 }
 
 template void agg_renderer<image_32>::process(markers_symbolizer const&,

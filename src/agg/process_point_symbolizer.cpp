@@ -50,6 +50,7 @@ void agg_renderer<T>::process(point_symbolizer const& sym,
                               mapnik::feature_impl & feature,
                               proj_transform const& prj_trans)
 {
+#if 0
     std::string filename = path_processor_type::evaluate(*sym.get_filename(), feature);
 
     boost::optional<mapnik::marker_ptr> marker;
@@ -108,7 +109,7 @@ void agg_renderer<T>::process(point_symbolizer const& sym,
             }
         }
     }
-
+#endif
 }
 
 template void agg_renderer<image_32>::process(point_symbolizer const&,

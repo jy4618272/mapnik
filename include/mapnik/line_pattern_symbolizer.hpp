@@ -30,15 +30,7 @@
 
 namespace mapnik
 {
-struct MAPNIK_DECL line_pattern_symbolizer :
-        public symbolizer_with_image, public symbolizer_base
-{
-    line_pattern_symbolizer(path_expression_ptr file);
-    line_pattern_symbolizer(line_pattern_symbolizer const& rhs);
-    double offset_;
-    double offset() const;
-    void set_offset(double offset);
-};
+struct MAPNIK_DECL line_pattern_symbolizer : symbolizer_base {} ;
 }
 
 #endif // MAPNIK_LINE_PATTERN_SYMBOLIZER_HPP

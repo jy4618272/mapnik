@@ -40,7 +40,7 @@
 namespace mapnik {
 
 template <typename FaceManagerT, typename DetectorT>
-text_symbolizer_helper<FaceManagerT, DetectorT>::text_symbolizer_helper(text_symbolizer const& sym,
+text_symbolizer_helper<FaceManagerT, DetectorT>::text_symbolizer_helper(symbolizer_base const& sym,
                            feature_impl const& feature,
                            proj_transform const& prj_trans,
                            unsigned width,
@@ -66,7 +66,7 @@ text_symbolizer_helper<FaceManagerT, DetectorT>::text_symbolizer_helper(text_sym
     {
         initialize_geometries();
         if (!geometries_to_process_.size()) return;
-        placement_ = sym_.get_placement_options()->get_placement_info(scale_factor);
+        //placement_ = sym_.get_placement_options()->get_placement_info(scale_factor);
         next_placement();
         initialize_points();
     }
@@ -81,7 +81,7 @@ bool text_symbolizer_helper<FaceManagerT, DetectorT>::next()
     if (!placement_valid_) return false;
     if (point_placement_)
         return next_point_placement();
-    else if (sym_.clip())
+    else if (get<bool>(sym_, "clip"))
         return next_line_placement_clipped();
     else
         return next_line_placement();
@@ -105,9 +105,12 @@ bool text_symbolizer_helper<FaceManagerT, DetectorT>::next_line_placement()
         path_type path(t_, **geo_itr_, prj_trans_);
 
         finder_->clear_placements();
-        if (points_on_line_) {
+        if (points_on_line_)
+        {
             finder_->find_point_placements(path);
-        } else {
+        }
+        else
+        {
             finder_->find_line_placements(path);
         }
         if (!finder_->get_results().empty())
@@ -121,7 +124,7 @@ bool text_symbolizer_helper<FaceManagerT, DetectorT>::next_line_placement()
             return true;
         }
         //No placement for this geometry. Keep it in geometries_to_process_ for next try.
-        geo_itr_++;
+        ++geo_itr_;
     }
     return false;
 }
@@ -212,17 +215,18 @@ void text_symbolizer_helper<FaceManagerT, DetectorT>::initialize_geometries()
 {
     bool largest_box_only = false;
     std::size_t num_geom = feature_.num_geometries();
-
+    /*
     for (std::size_t i = 0; i < num_geom; ++i)
     {
         geometry_type const& geom = feature_.get_geometry(i);
 
         // don't bother with empty geometries
         if (geom.size() == 0) continue;
+
         geometry_type::types type = geom.type();
         if (type == geometry_type::types::Polygon)
         {
-            largest_box_only = sym_.largest_bbox_only();
+            largest_box_only = false;// FIXME sym_.largest_bbox_only();
             if (sym_.get_minimum_path_length() > 0)
             {
                 box2d<double> gbox = t_.forward(geom.envelope(), prj_trans_);
@@ -242,6 +246,7 @@ void text_symbolizer_helper<FaceManagerT, DetectorT>::initialize_geometries()
         geo_itr_ = geometries_to_process_.begin();
         geometries_to_process_.erase(++geo_itr_,geometries_to_process_.end());
     }
+    */
     geo_itr_ = geometries_to_process_.begin();
 }
 
@@ -361,6 +366,7 @@ bool shield_symbolizer_helper<FaceManagerT, DetectorT>::next()
 template <typename FaceManagerT, typename DetectorT>
 bool shield_symbolizer_helper<FaceManagerT, DetectorT>::next_point_placement()
 {
+    /*
     position const& shield_pos = sym_.get_shield_displacement();
     while (!points_.empty())
     {
@@ -412,8 +418,9 @@ bool shield_symbolizer_helper<FaceManagerT, DetectorT>::next_point_placement()
             return true;
         }
         //No placement found. Try again
-        point_itr_++;
+        ++point_itr_;
     }
+    */
     return false;
 }
 
@@ -429,18 +436,23 @@ bool shield_symbolizer_helper<FaceManagerT, DetectorT>::next_line_placement()
                       -0.5 * marker_ext_.height() - pos.second,
                       0.5 * marker_ext_.width()  - pos.first,
                       0.5 * marker_ext_.height() - pos.second));
-    if ( sym_.clip())
+    if ( get<bool>(sym_, "clip"))
+    {
         return text_symbolizer_helper<FaceManagerT, DetectorT>::next_line_placement_clipped();
+    }
     else
+    {
         return text_symbolizer_helper<FaceManagerT, DetectorT>::next_line_placement();
+    }
 }
 
 
 template <typename FaceManagerT, typename DetectorT>
 void shield_symbolizer_helper<FaceManagerT, DetectorT>::init_marker()
 {
-    std::string filename = path_processor_type::evaluate(*sym_.get_filename(), this->feature_);
-    evaluate_transform(image_transform_, feature_, sym_.get_image_transform());
+    //std::string filename = path_processor_type::evaluate(*sym_.get_filename(), this->feature_);
+    std::string filename = get<std::string>(sym_, "filename", feature_);
+    evaluate_transform(image_transform_, feature_, get<transform_type>(sym_,"image-transform"));
     marker_.reset();
     if (!filename.empty())
     {

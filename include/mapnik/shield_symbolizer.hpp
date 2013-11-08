@@ -25,41 +25,11 @@
 
 // mapnik
 #include <mapnik/config.hpp>
-#include <mapnik/color.hpp>
 #include <mapnik/symbolizer.hpp>
-#include <mapnik/expression.hpp>
-#include <mapnik/text_symbolizer.hpp>
-
-// boost
-#include <boost/tuple/tuple.hpp>
 
 namespace mapnik
 {
-struct MAPNIK_DECL shield_symbolizer : public text_symbolizer,
-                                       public symbolizer_with_image
-{
-    // Note - we do not use std::make_shared below as VC2008 and VC2010 are
-    // not able to compile make_shared used within a constructor
-    shield_symbolizer(text_placements_ptr placements = text_placements_ptr(new text_placements_dummy));
-    shield_symbolizer(expression_ptr name,
-                      std::string const& face_name,
-                      float size,
-                      color const& fill,
-                      path_expression_ptr file);
-    shield_symbolizer(expression_ptr name,
-                      float size,
-                      color const& fill,
-                      path_expression_ptr file);
-
-    bool get_unlock_image() const;              // image is not locked to the text placement
-    void set_unlock_image(bool unlock_image);
-    void set_shield_displacement(double shield_dx, double shield_dy);
-    position const& get_shield_displacement() const;
-
-private:
-    bool unlock_image_;
-    position shield_displacement_;
-};
+struct MAPNIK_DECL shield_symbolizer : symbolizer_base {};
 }
 
 #endif // MAPNIK_SHIELD_SYMBOLIZER_HPP

@@ -38,6 +38,7 @@ void  agg_renderer<T>::process(shield_symbolizer const& sym,
                                mapnik::feature_impl & feature,
                                proj_transform const& prj_trans)
 {
+#if 0
     box2d<double> clip_box = clipping_extent();
     shield_symbolizer_helper<face_manager<freetype_engine>,
         label_collision_detector4> helper(
@@ -76,6 +77,7 @@ void  agg_renderer<T>::process(shield_symbolizer const& sym,
             ren.render(placements[ii].center);
         }
     }
+#endif
 }
 
 

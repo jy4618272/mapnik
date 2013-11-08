@@ -40,7 +40,7 @@ void evaluate_transform(agg::trans_affine& tr, feature_impl const& feature,
         transform_processor_type::evaluate(tr, feature, *trans_expr);
     }
 }
-
+#if 0
 // default ctor
 symbolizer_base::symbolizer_base()
     : comp_op_(src_over),
@@ -202,5 +202,5 @@ std::string symbolizer_with_image::get_image_transform_string() const
         return std::string();
     }
 }
-
+#endif
 } // end of namespace mapnik

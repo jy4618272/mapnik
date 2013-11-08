@@ -34,7 +34,7 @@ static const char * debug_symbolizer_mode_strings[] = {
 };
 
 IMPLEMENT_ENUM( debug_symbolizer_mode_e, debug_symbolizer_mode_strings )
-
+#if 0
 debug_symbolizer::debug_symbolizer()
 : symbolizer_base(),
   mode_(DEBUG_SYM_MODE_COLLISION) {}
@@ -52,6 +52,5 @@ void debug_symbolizer::set_mode(debug_symbolizer_mode_e mode)
 {
     mode_ = mode;
 }
-
+#endif
 }
-

@@ -25,7 +25,7 @@
 
 namespace mapnik
 {
-
+#if 0
 polygon_symbolizer::polygon_symbolizer()
     : symbolizer_base(),
       fill_(color(128,128,128)),
@@ -81,5 +81,5 @@ gamma_method_e polygon_symbolizer::get_gamma_method() const
 {
     return gamma_method_;
 }
-
+#endif
 }

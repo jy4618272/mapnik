@@ -59,19 +59,22 @@ void agg_renderer<T>::process(line_symbolizer const& sym,
                               proj_transform const& prj_trans)
 
 {
-    stroke const& stroke_ = sym.get_stroke();
-    color const& col = stroke_.get_color();
+#if 0
+    color const& col = get<color>(sym, "stroke", feature);
     unsigned r=col.red();
     unsigned g=col.green();
     unsigned b=col.blue();
     unsigned a=col.alpha();
 
+    double gamma = get<double>(sym, "gamma", feature);
+    gamma_method_enum gamma_method = static_cast<gamma_method_enum>(get<int>(sym, "gamma-method", feature));
     ras_ptr->reset();
-    if (stroke_.get_gamma() != gamma_ || stroke_.get_gamma_method() != gamma_method_)
+
+    if (gamma = gamma_ || gamma_method != gamma_method_)
     {
-        set_gamma_method(stroke_, ras_ptr);
-        gamma_method_ = stroke_.get_gamma_method();
-        gamma_ = stroke_.get_gamma();
+        //set_gamma_method(sym, ras_ptr, feature); // FIXME
+        gamma_method_ = gamma_method;
+        gamma_ = gamma;
     }
 
     agg::rendering_buffer buf(current_buffer_->raw_data(),current_buffer_->width(),current_buffer_->height(), current_buffer_->width() * 4);
@@ -86,21 +89,32 @@ void agg_renderer<T>::process(line_symbolizer const& sym,
                                simplify_tag, smooth_tag, dash_tag, stroke_tag> conv_types;
 
     pixfmt_comp_type pixf(buf);
-    pixf.comp_op(static_cast<agg::comp_op_e>(sym.comp_op()));
+    pixf.comp_op(static_cast<agg::comp_op_e>(get<int>(sym, "comp-op", feature)));
     renderer_base renb(pixf);
-
     agg::trans_affine tr;
-    evaluate_transform(tr, feature, sym.get_transform());
-
+    evaluate_transform(tr, feature, get<transform_type>(sym, "transform", feature));
     box2d<double> clip_box = clipping_extent();
-    if (sym.clip())
+
+    bool clip = get<bool>(sym, "clip", feature);
+    double width = get<double>(sym, "stroke-width", feature);
+    double opacity = get<double>(sym,"stroke-opacity",feature);
+    double offset = get<double>(sym, "offset", feature);
+    double simplify_tolerance = get<double>(sym, "simplify-tolerance", feature);
+    double smooth = get<double>(sym, "smooth", feature);
+    line_rasterizer_enum rasterizer_e = static_cast<line_rasterizer_enum>(get<int>(sym, "rasterizer", feature));
+    if (clip)
     {
         double padding = (double)(query_extent_.width()/pixmap_.width());
-        double half_stroke = stroke_.get_width()/2.0;
+        double half_stroke = 0.5 * width;
         if (half_stroke > 1)
+        {
             padding *= half_stroke;
-        if (std::fabs(sym.offset()) > 0)
-            padding *= std::fabs(sym.offset()) * 1.2;
+        }
+        if (std::fabs(offset) > 0)
+        {
+            padding *= std::fabs(offset) * 1.2;
+        }
+
         padding *= scale_factor_;
         clip_box.pad(padding);
         // debugging
@@ -109,25 +123,25 @@ void agg_renderer<T>::process(line_symbolizer const& sym,
         //draw_geo_extent(inverse,mapnik::color("red"));
     }
 
-    if (sym.get_rasterizer() == RASTERIZER_FAST)
+    if (rasterizer_e == RASTERIZER_FAST)
     {
         typedef agg::renderer_outline_aa<renderer_base> renderer_type;
         typedef agg::rasterizer_outline_aa<renderer_type> rasterizer_type;
-        agg::line_profile_aa profile(stroke_.get_width() * scale_factor_, agg::gamma_power(stroke_.get_gamma()));
+        agg::line_profile_aa profile(width * scale_factor_, agg::gamma_power(gamma));
         renderer_type ren(renb, profile);
-        ren.color(agg::rgba8_pre(r, g, b, int(a*stroke_.get_opacity())));
+        ren.color(agg::rgba8_pre(r, g, b, int(a * opacity)));
         rasterizer_type ras(ren);
-        set_join_caps_aa(stroke_,ras);
+        set_join_caps_aa(sym , ras, feature);
 
         vertex_converter<box2d<double>, rasterizer_type, line_symbolizer,
                          CoordTransform, proj_transform, agg::trans_affine, conv_types>
             converter(clip_box,ras,sym,t_,prj_trans,tr,scale_factor_);
-        if (sym.clip()) converter.set<clip_line_tag>(); // optional clip (default: true)
+        if (clip) converter.set<clip_line_tag>(); // optional clip (default: true)
         converter.set<transform_tag>(); // always transform
-        if (std::fabs(sym.offset()) > 0.0) converter.set<offset_transform_tag>(); // parallel offset
+        if (std::fabs(offset) > 0.0) converter.set<offset_transform_tag>(); // parallel offset
         converter.set<affine_transform_tag>(); // optional affine transform
-        if (sym.simplify_tolerance() > 0.0) converter.set<simplify_tag>(); // optional simplify converter
-        if (sym.smooth() > 0.0) converter.set<smooth_tag>(); // optional smooth converter
+        if (simplify_tolerance > 0.0) converter.set<simplify_tag>(); // optional simplify converter
+        if (smooth > 0.0) converter.set<smooth_tag>(); // optional smooth converter
 
         for (geometry_type & geom : feature.paths())
         {
@@ -143,13 +157,14 @@ void agg_renderer<T>::process(line_symbolizer const& sym,
                          CoordTransform, proj_transform, agg::trans_affine, conv_types>
             converter(clip_box,*ras_ptr,sym,t_,prj_trans,tr,scale_factor_);
 
-        if (sym.clip()) converter.set<clip_line_tag>(); // optional clip (default: true)
+        if (clip) converter.set<clip_line_tag>(); // optional clip (default: true)
         converter.set<transform_tag>(); // always transform
-        if (std::fabs(sym.offset()) > 0.0) converter.set<offset_transform_tag>(); // parallel offset
+        if (std::fabs(offset) > 0.0) converter.set<offset_transform_tag>(); // parallel offset
         converter.set<affine_transform_tag>(); // optional affine transform
-        if (sym.simplify_tolerance() > 0.0) converter.set<simplify_tag>(); // optional simplify converter
-        if (sym.smooth() > 0.0) converter.set<smooth_tag>(); // optional smooth converter
-        if (stroke_.has_dash()) converter.set<dash_tag>();
+        if (simplify_tolerance > 0.0) converter.set<simplify_tag>(); // optional simplify converter
+        if (smooth > 0.0) converter.set<smooth_tag>(); // optional smooth converter
+//      if (stroke_.has_dash()) converter.set<dash_tag>(); // FIXME
+
         converter.set<stroke_tag>(); //always stroke
 
         for (geometry_type & geom : feature.paths())
@@ -162,11 +177,12 @@ void agg_renderer<T>::process(line_symbolizer const& sym,
 
         typedef agg::renderer_scanline_aa_solid<renderer_base> renderer_type;
         renderer_type ren(renb);
-        ren.color(agg::rgba8_pre(r, g, b, int(a * stroke_.get_opacity())));
+        ren.color(agg::rgba8_pre(r, g, b, int(a * opacity)));
         agg::scanline_u8 sl;
         ras_ptr->filling_rule(agg::fill_non_zero);
         agg::render_scanlines(*ras_ptr, sl, ren);
     }
+#endif
 }
 
 

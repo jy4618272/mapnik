@@ -50,25 +50,32 @@ void agg_renderer<T>::process(polygon_symbolizer const& sym,
 {
 
     ras_ptr->reset();
+#if 0
     if (sym.get_gamma() != gamma_ || sym.get_gamma_method() != gamma_method_)
     {
         set_gamma_method(sym, ras_ptr);
         gamma_method_ = sym.get_gamma_method();
         gamma_ = sym.get_gamma();
     }
+#endif
     agg::trans_affine tr;
-    evaluate_transform(tr, feature, sym.get_transform());
+    //evaluate_transform(tr, feature, get<transform_type>(sym, "transform", feature));
     box2d<double> clip_box = clipping_extent();
     typedef boost::mpl::vector<clip_poly_tag,transform_tag,affine_transform_tag,simplify_tag,smooth_tag> conv_types;
     vertex_converter<box2d<double>, rasterizer, polygon_symbolizer,
                      CoordTransform, proj_transform, agg::trans_affine, conv_types>
         converter(clip_box,*ras_ptr,sym,t_,prj_trans,tr,scale_factor_);
 
-    if (prj_trans.equal() && sym.clip()) converter.set<clip_poly_tag>(); //optional clip (default: true)
+    bool clip = get<bool>(sym, "clip", feature);
+    double simplify_tolerance = get<double>(sym, "simplify-tolerance", feature);
+    double smooth = get<double>(sym, "smooth", feature);
+    double opacity = get<double>(sym,"fill-opacity",feature);
+
+    if (prj_trans.equal() && clip) converter.set<clip_poly_tag>(); //optional clip (default: true)
     converter.set<transform_tag>(); //always transform
     converter.set<affine_transform_tag>();
-    if (sym.simplify_tolerance() > 0.0) converter.set<simplify_tag>(); // optional simplify converter
-    if (sym.smooth() > 0.0) converter.set<smooth_tag>(); // optional smooth converter
+    if (simplify_tolerance > 0.0) converter.set<simplify_tag>(); // optional simplify converter
+    if (smooth > 0.0) converter.set<smooth_tag>(); // optional smooth converter
 
     for (geometry_type & geom : feature.paths())
     {
@@ -80,12 +87,11 @@ void agg_renderer<T>::process(polygon_symbolizer const& sym,
 
     agg::rendering_buffer buf(current_buffer_->raw_data(),current_buffer_->width(),current_buffer_->height(), current_buffer_->width() * 4);
 
-    color const& fill = sym.get_fill();
+    color const& fill = get<mapnik::color>(sym, "fill", feature);
     unsigned r=fill.red();
     unsigned g=fill.green();
     unsigned b=fill.blue();
     unsigned a=fill.alpha();
-
     typedef agg::rgba8 color_type;
     typedef agg::order_rgba order_type;
     typedef agg::comp_op_adaptor_rgba_pre<color_type, order_type> blender_type; // comp blender
@@ -93,14 +99,13 @@ void agg_renderer<T>::process(polygon_symbolizer const& sym,
     typedef agg::renderer_base<pixfmt_comp_type> renderer_base;
     typedef agg::renderer_scanline_aa_solid<renderer_base> renderer_type;
     pixfmt_comp_type pixf(buf);
-    pixf.comp_op(static_cast<agg::comp_op_e>(sym.comp_op()));
+    //pixf.comp_op(static_cast<agg::comp_op_e>(get<value_integer>(sym, "comp-op", feature)));
     renderer_base renb(pixf);
     renderer_type ren(renb);
-    ren.color(agg::rgba8_pre(r, g, b, int(a * sym.get_opacity())));
+    ren.color(agg::rgba8_pre(r, g, b, int(a * opacity)));
     agg::scanline_u8 sl;
     ras_ptr->filling_rule(agg::fill_even_odd);
     agg::render_scanlines(*ras_ptr, sl, ren);
-
 }
 
 template void agg_renderer<image_32>::process(polygon_symbolizer const&,

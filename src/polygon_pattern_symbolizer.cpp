@@ -34,7 +34,7 @@ static const char * pattern_alignment_strings[] = {
 };
 
 IMPLEMENT_ENUM( pattern_alignment_e, pattern_alignment_strings )
-
+#if 0
 polygon_pattern_symbolizer::polygon_pattern_symbolizer(path_expression_ptr file)
 : symbolizer_with_image(file), symbolizer_base(),
     alignment_(LOCAL_ALIGNMENT),
@@ -76,6 +76,5 @@ gamma_method_e polygon_pattern_symbolizer::get_gamma_method() const
 {
     return gamma_method_;
 }
-
+#endif
 }
-

@@ -52,6 +52,7 @@ void agg_renderer<T>::process(debug_symbolizer const& sym,
                               mapnik::feature_impl & feature,
                               proj_transform const& prj_trans)
 {
+#if 0
     debug_symbolizer_mode_e mode = sym.get_mode();
     if (mode == DEBUG_SYM_MODE_COLLISION)
     {
@@ -84,10 +85,10 @@ void agg_renderer<T>::process(debug_symbolizer const& sym,
             }
         }
     }
+#endif
 }
 
 template void agg_renderer<image_32>::process(debug_symbolizer const&,
                                               mapnik::feature_impl &,
                                               proj_transform const&);
 }
-
